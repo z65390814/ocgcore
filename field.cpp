@@ -491,8 +491,9 @@ int32 field::is_location_useable(uint8 playerid, uint8 location, uint8 sequence)
 		return FALSE;
 	return TRUE;
 }
-// return: usable count of LOCATION_MZONE or real LOCATION_SZONE
-// store local flag in list
+// uplayer: request player, PLAYER_NONE means ignoring EFFECT_MAX_MZONE, EFFECT_MAX_SZONE
+// list: store local flag in list
+// return: usable count of LOCATION_MZONE or real LOCATION_SZONE of plaerid requested by uplayer (may be negative)
 int32 field::get_useable_count(uint8 playerid, uint8 location, uint8 uplayer, uint32 reason, uint32* list) {
 	if (location != LOCATION_MZONE && location != LOCATION_SZONE)
 		return 0;
@@ -1251,7 +1252,15 @@ int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int3
 	}
 	return FALSE;
 }
+// return: the max release count of mg or all monsters on field
 int32 field::get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_sum, group* mg, uint32 ex) {
+	int32 m1 = get_summon_release_slist(target, release_list, mg);
+	int32 m2 = get_summon_release_olist(target, ex_list, ex_list_sum, mg, ex);
+	return m1 + m2;
+}
+// let the controller of target be p
+// search in mg or mzone of p, and put the tribute monsters in release_list
+int32 field::get_summon_release_slist(card* target, card_set* release_list, group* mg) {
 	uint8 p = target->current.controler;
 	card* pcard;
 	uint32 rcount = 0;
@@ -1262,15 +1271,23 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 				continue;
 			if(release_list)
 				release_list->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
-				pcard->release_param = 3;
-			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->release_param = 2;
 			else
 				pcard->release_param = 1;
 			rcount += pcard->release_param;
 		}
 	}
+	return rcount;
+}
+// ex: the procedure of target can release opponent monster
+// ex_list: the tribute monsters controlled by 1-p
+// ex_list_sum: the opponent monsters affected by EFFECT_EXTRA_RELEASE_SUM
+// search in mg or mzone of 1-p, and maintain ex_list, ex_list_sum
+int32 field::get_summon_release_olist(card* target, card_set* ex_list, card_set* ex_list_sum, group* mg, uint32 ex) {
+	uint8 p = target->current.controler;
+	card* pcard;
+	uint32 rcount = 0;
 	uint32 ex_sum_max = 0;
 	for(int i = 0; i < 5; ++i) {
 		pcard = player[1 - p].list_mzone[i];
@@ -1281,9 +1298,7 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 		if(ex || pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
 			if(ex_list)
 				ex_list->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
-				pcard->release_param = 3;
-			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->release_param = 2;
 			else
 				pcard->release_param = 1;
@@ -1294,9 +1309,7 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 				continue;
 			if(ex_list_sum)
 				ex_list_sum->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
-				pcard->release_param = 3;
-			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->release_param = 2;
 			else
 				pcard->release_param = 1;
@@ -1305,6 +1318,22 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 		}
 	}
 	return rcount + ex_sum_max;
+}
+// put the monsters of 1-p affected by EFFECT_EXTRA_RELEASE
+int32 field::get_summon_release_exlist(card* target, card_set* ex_list, group* mg) {
+	uint8 p = target->current.controler;
+	card* pcard;
+	for(int i = 0; i < 5; ++i) {
+		pcard = player[1 - p].list_mzone[i];
+		if(!(pcard && pcard->is_releasable_by_summon(p, target)))
+			continue;
+		if(mg && !mg->has_card(pcard))
+			continue;
+		if(pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
+			ex_list->insert(pcard);
+		}
+	}
+	return TRUE;
 }
 int32 field::get_summon_count_limit(uint8 playerid) {
 	effect_set eset;
@@ -1326,26 +1355,40 @@ int32 field::get_draw_count(uint8 playerid) {
 	return count;
 }
 void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* material) {
-	card* pcard;
 	for(int i = 0; i < 5; ++i) {
-		pcard = player[playerid].list_mzone[i];
-		if(pcard && pcard->get_level() && pcard->is_affect_by_effect(core.reason_effect)
+		card* pcard = player[playerid].list_mzone[i];
+		if(pcard && pcard->get_level() && pcard->is_affect_by_effect(peffect)
 		        && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_releasable_by_effect(playerid, peffect))
 			material->insert(pcard);
 	}
 	for(int i = 0; i < 5; ++i) {
-		pcard = player[1 - playerid].list_mzone[i];
-		if(pcard && pcard->get_level() && pcard->is_affect_by_effect(core.reason_effect)
+		card* pcard = player[1 - playerid].list_mzone[i];
+		if(pcard && pcard->get_level() && pcard->is_affect_by_effect(peffect)
 		        && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)
 		        && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_releasable_by_effect(playerid, peffect))
 			material->insert(pcard);
 	}
 	for(auto cit = player[playerid].list_hand.begin(); cit != player[playerid].list_hand.end(); ++cit)
 		if(((*cit)->data.type & TYPE_MONSTER) && (*cit)->is_releasable_by_nonsummon(playerid))
-			material->insert((*cit));
+			material->insert(*cit);
 	for(auto cit = player[playerid].list_grave.begin(); cit != player[playerid].list_grave.end(); ++cit)
 		if(((*cit)->data.type & TYPE_MONSTER) && (*cit)->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL) && (*cit)->is_removeable(playerid))
-			material->insert((*cit));
+			material->insert(*cit);
+}
+void field::get_fusion_material(uint8 playerid, card_set* material) {
+	for(int i = 0; i < 5; ++i) {
+		card* pcard = player[playerid].list_mzone[i];
+		if(pcard)
+			material->insert(pcard);
+	}
+	for(int i = 0; i < 8; ++i) {
+		card* pcard = player[playerid].list_szone[i];
+		if(pcard && pcard->is_affected_by_effect(EFFECT_EXTRA_FUSION_MATERIAL))
+			material->insert(pcard);
+	}
+	for(auto cit = player[playerid].list_hand.begin(); cit != player[playerid].list_hand.end(); ++cit)
+		if((*cit)->data.type & TYPE_MONSTER)
+			material->insert(*cit);
 }
 void field::ritual_release(card_set* material) {
 	card_set rel;
@@ -1531,7 +1574,7 @@ void field::remove_unique_card(card* pcard) {
 	if(pcard->unique_pos[1])
 		core.unique_cards[1 - con].erase(pcard);
 }
-
+// return: pcard->unique_effect or 0
 effect* field::check_unique_onfield(card* pcard, uint8 controler, uint8 location) {
 	if(!pcard->unique_code)
 		return 0;
@@ -2176,6 +2219,47 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 	pduel->restore_assumes();
 	return FALSE;
 }
+// check if "releasing min~max tributes" is available
+int32 field::check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 toplayer) {
+	card_set test, exset;
+	int32 m1 = 0, m2 = 0;
+	if(toplayer == pcard->current.controler) {
+		m1 = get_summon_release_slist(pcard, &test, mg);
+		m2 = get_summon_release_olist(pcard, NULL, NULL, mg, 0);
+	} else {
+		m1 = get_summon_release_olist(pcard, &test, NULL, mg, 1);
+		m2 = get_summon_release_slist(pcard, NULL, mg);
+	}
+	// sum of release count is the real upper bound
+	if(max > m1 + m2)
+		max = m1 + m2;
+	if(min > max)
+		return FALSE;
+	int32 fcount = get_useable_count(toplayer, LOCATION_MZONE, pcard->current.controler, LOCATION_REASON_TOFIELD);
+	// test "releasing i tributes"
+	for(int32 i = min; i <= max; ++i){
+		int32 rmax = 0;
+		if(toplayer == pcard->current.controler) {
+			get_summon_release_exlist(pcard, &exset, mg);
+			// let r be the number of monsters released from mzone of toplayer
+			// r<=i-ex, r<=test
+			// rmax = min{i-ex, test}
+			if(i >= (int32)exset.size()){
+				rmax = i - (int32)exset.size();
+				if(rmax > (int32)test.size())
+					rmax = (int32)test.size();
+			}
+			else
+				rmax = 0;
+		}
+		else
+			rmax = (int32)test.size();
+		// this is the # of slots after the advance summon
+		if(fcount + rmax - 1 >= 0)
+			return TRUE;
+	}
+	return FALSE;
+}
 int32 field::check_with_sum_limit(const card_vector& mats, int32 acc, int32 index, int32 count, int32 min, int32 max) {
 	if(count > max)
 		return FALSE;
@@ -2304,7 +2388,7 @@ int32 field::is_player_can_summon(uint32 sumtype, uint8 playerid, card * pcard) 
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
-		if (pduel->lua->check_condition(eset[i]->target, 4))
+		if(pduel->lua->check_condition(eset[i]->target, 4))
 			return FALSE;
 	}
 	return TRUE;
