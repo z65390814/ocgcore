@@ -303,6 +303,17 @@ int32 card::is_set_card(uint32 set_code) {
 	}
 	return FALSE;
 }
+int32 card::is_origin_set_card(uint32 set_code) {
+	uint64 setcode = data.setcode;
+	uint32 settype = set_code & 0xfff;
+	uint32 setsubtype = set_code & 0xf000;
+	while(setcode) {
+		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+			return TRUE;
+		setcode = setcode >> 16;
+	}
+	return FALSE;
+}
 int32 card::is_pre_set_card(uint32 set_code) {
 	uint32 code = previous.code;
 	uint64 setcode;
@@ -480,6 +491,7 @@ int32 card::get_attack() {
 	int32 bdef = data.defense;
 	if(bdef < 0)
 		bdef = 0;
+	temp.base_attack = batk;
 	temp.attack = batk;
 	int32 atk = -1;
 	int32 up_atk = 0, upc_atk = 0;
@@ -505,6 +517,7 @@ int32 card::get_attack() {
 				batk = eset[i]->get_value(this);
 				if(batk < 0)
 					batk = 0;
+				temp.base_attack = batk;
 				eset.remove_item(i);
 				continue;
 			case EFFECT_SET_BASE_DEFENSE:
@@ -566,6 +579,7 @@ int32 card::get_attack() {
 			std::swap(batk, bdef);
 			break;
 		}
+		temp.base_attack = batk;
 		if(!rev) {
 			temp.attack = ((atk < 0) ? batk : atk) + up_atk + upc_atk;
 		} else {
@@ -589,6 +603,7 @@ int32 card::get_attack() {
 	atk = temp.attack;
 	if(atk < 0)
 		atk = 0;
+	temp.base_attack = -1;
 	temp.attack = -1;
 	return atk;
 }
@@ -669,6 +684,7 @@ int32 card::get_defense() {
 	int32 bdef = data.defense;
 	if(bdef < 0)
 		bdef = 0;
+	temp.base_defense = bdef;
 	temp.defense = bdef;
 	int32 def = -1;
 	int32 up_def = 0, upc_def = 0;
@@ -700,6 +716,7 @@ int32 card::get_defense() {
 				bdef = eset[i]->get_value(this);
 				if(bdef < 0)
 					bdef = 0;
+				temp.base_defense = bdef;
 				eset.remove_item(i);
 				continue;
 			}
@@ -755,6 +772,7 @@ int32 card::get_defense() {
 			std::swap(batk, bdef);
 			break;
 		}
+		temp.base_defense = bdef;
 		if(!rev) {
 			temp.defense = ((def < 0) ? bdef : def) + up_def + upc_def;
 		} else {
@@ -778,6 +796,7 @@ int32 card::get_defense() {
 	def = temp.defense;
 	if(def < 0)
 		def = 0;
+	temp.base_defense = -1;
 	temp.defense = -1;
 	return def;
 }

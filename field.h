@@ -364,9 +364,6 @@ public:
 	int32 get_release_list(uint8 playerid, card_set* release_list, card_set* ex_list, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exp);
 	int32 check_release_list(uint8 playerid, int32 count, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exp);
 	int32 get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_sum, group* mg = NULL, uint32 ex = 0);
-	int32 get_summon_release_slist(card* target, card_set* release_list, group* mg = NULL);
-	int32 get_summon_release_olist(card* target, card_set* ex_list, card_set* ex_list_sum, group* mg = NULL, uint32 ex = 0);
-	int32 get_summon_release_exlist(card* target, card_set* ex_list, group* mg = NULL);
 	int32 get_summon_count_limit(uint8 playerid);
 	int32 get_draw_count(uint8 playerid);
 	void get_ritual_material(uint8 playerid, effect* peffect, card_set* material);
@@ -428,8 +425,8 @@ public:
 	int32 is_player_can_send_to_hand(uint8 playerid, card* pcard);
 	int32 is_player_can_send_to_deck(uint8 playerid, card* pcard);
 	int32 is_player_can_remove(uint8 playerid, card* pcard);
-	int32 is_chain_negatable(uint8 chaincount, uint8 naga_check = FALSE);
-	int32 is_chain_disablable(uint8 chaincount, uint8 naga_check = FALSE);
+	int32 is_chain_negatable(uint8 chaincount);
+	int32 is_chain_disablable(uint8 chaincount);
 	int32 is_chain_disabled(uint8 chaincount);
 	int32 check_chain_target(uint8 chaincount, card* pcard);
 	int32 is_able_to_enter_bp();
