@@ -1350,8 +1350,18 @@ int32 scriptlib::card_is_destructable(lua_State *L) {
 int32 scriptlib::card_is_summonable(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
-	card * pcard = *(card**) lua_touserdata(L, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
 	lua_pushboolean(L, pcard->is_summonable_card());
+	return 1;
+}
+int32 scriptlib::card_is_fusion_summonable_card(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 summon_type = 0;
+	if(lua_gettop(L) > 1)
+		summon_type = lua_tointeger(L, 2);
+	lua_pushboolean(L, pcard->is_fusion_summonable_card(summon_type));
 	return 1;
 }
 int32 scriptlib::card_is_msetable(lua_State *L) {
