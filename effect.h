@@ -67,7 +67,7 @@ public:
 	int32 is_can_be_forbidden();
 	int32 is_available();
 	int32 check_count_limit(uint8 playerid);
-	int32 is_activateable(uint8 playerid, const tevent& e, int32 neglect_cond = FALSE, int32 neglect_cost = FALSE, int32 neglect_target = FALSE);
+	int32 is_activateable(uint8 playerid, const tevent& e, int32 neglect_cond = FALSE, int32 neglect_cost = FALSE, int32 neglect_target = FALSE, int32 neglect_loc = FALSE);
 	int32 is_action_check(uint8 playerid);
 	int32 is_activate_ready(uint8 playerid, const tevent& e, int32 neglect_cond = FALSE, int32 neglect_cost = FALSE, int32 neglect_target = FALSE);
 	int32 is_condition_check(uint8 playerid, const tevent& e);
@@ -89,7 +89,8 @@ public:
 	uint8 get_owner_player();
 	card* get_handler() const;
 	uint8 get_handler_player();
-	int32 in_range(int32 loc, int32 seq);
+	int32 in_range(card* pcard);
+	int32 in_range(const chain& ch);
 	bool is_flag(effect_flag flag) const {
 		return !!(this->flag[0] & flag);
 	}
@@ -356,6 +357,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_CANNOT_BE_SYNCHRO_MATERIAL	236
 #define EFFECT_SYNCHRO_MATERIAL_CUSTOM		237
 #define EFFECT_CANNOT_BE_XYZ_MATERIAL		238
+#define EFFECT_CANNOT_BE_LINK_MATERIAL		239
 #define EFFECT_SYNCHRO_LEVEL				240
 #define EFFECT_RITUAL_LEVEL					241
 #define EFFECT_XYZ_LEVEL					242
@@ -414,6 +416,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 //#define EFFECT_REMOVE_FUSION_ATTRIBUTE	350
 #define EFFECT_CHANGE_FUSION_ATTRIBUTE	351
 #define EFFECT_EXTRA_FUSION_MATERIAL	352
+#define EFFECT_TUNER_MATERIAL_LIMIT		353
 
 #define EVENT_STARTUP		1000
 #define EVENT_FLIP			1001
