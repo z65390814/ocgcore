@@ -155,6 +155,12 @@ struct processor {
 	typedef std::list<processor_unit> processor_list;
 	typedef std::set<card*, card_sort> card_set;
 	typedef std::set<std::pair<effect*, tevent> > delayed_effect_collection;
+	struct chain_limit_t {
+		chain_limit_t(int32 f, int32 p): function(f), player(p) {}
+		int32 function;
+		int32 player;
+	};
+	typedef std::vector<chain_limit_t> chain_limit_list;
 
 	processor_list units;
 	processor_list subunits;
@@ -233,10 +239,8 @@ struct processor {
 	uint32 global_flag;
 	uint16 pre_field[2];
 	uint16 opp_mzone[7];
-	int32 chain_limit;
-	uint8 chain_limp;
-	int32 chain_limit_p;
-	uint8 chain_limp_p;
+	chain_limit_list chain_limit;
+	chain_limit_list chain_limit_p;
 	uint8 chain_solving;
 	uint8 conti_solving;
 	uint8 win_player;
@@ -354,7 +358,7 @@ public:
 	void get_linked_cards(uint8 self, uint8 s, uint8 o, card_set* cset);
 	int32 check_extra_link(int32 playerid);
 	int32 check_extra_link(int32 playerid, card* pcard, int32 sequence);
-	void get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid);
+	void get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid, int32 location);
 	void shuffle(uint8 playerid, uint8 location);
 	void reset_sequence(uint8 playerid, uint8 location);
 	void swap_deck_and_grave(uint8 playerid);
@@ -446,6 +450,7 @@ public:
 	int32 is_chain_disablable(uint8 chaincount);
 	int32 is_chain_disabled(uint8 chaincount);
 	int32 check_chain_target(uint8 chaincount, card* pcard);
+	chain* get_chain(uint32 chaincount);
 	int32 is_able_to_enter_bp();
 
 	void add_process(uint16 type, uint16 step, effect* peffect, group* target, ptr arg1, ptr arg2, ptr arg3 = 0, ptr arg4 = 0, void* ptr1 = NULL, void* ptr2 = NULL);
@@ -543,6 +548,7 @@ public:
 	int32 move_to_field(uint16 step, card* target, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone);
 	int32 change_position(uint16 step, group* targets, effect* reason_effect, uint8 reason_player, uint32 enable);
 	int32 operation_replace(uint16 step, effect* replace_effect, group* targets, card* arg, ptr replace_type);
+	int32 activate_effect(uint16 step, effect* peffect);
 	int32 select_synchro_material(int16 step, uint8 playerid, card* pcard, int32 min, int32 max, card* smat, group* mg);
 	int32 select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* pcard, int32 min, int32 max);
 	int32 select_release_cards(int16 step, uint8 playerid, uint8 check_field, uint8 cancelable, int32 min, int32 max);
@@ -553,7 +559,7 @@ public:
 
 	int32 select_battle_command(uint16 step, uint8 playerid);
 	int32 select_idle_command(uint16 step, uint8 playerid);
-	int32 select_effect_yes_no(uint16 step, uint8 playerid, card* pcard);
+	int32 select_effect_yes_no(uint16 step, uint8 playerid, uint32 description, card* pcard);
 	int32 select_yes_no(uint16 step, uint8 playerid, uint32 description);
 	int32 select_option(uint16 step, uint8 playerid);
 	int32 select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max);
@@ -577,6 +583,7 @@ public:
 #define CHAIN_DISABLE_ACTIVATE	0x01
 #define CHAIN_DISABLE_EFFECT	0x02
 #define CHAIN_HAND_EFFECT		0x04
+#define CHAIN_CONTINUOUS_CARD	0x08
 #define CHAININFO_CHAIN_COUNT			0x01
 #define CHAININFO_TRIGGERING_EFFECT		0x02
 #define CHAININFO_TRIGGERING_PLAYER		0x04
@@ -698,6 +705,7 @@ public:
 #define PROCESSOR_PAY_LPCOST		80
 #define PROCESSOR_REMOVE_COUNTER	81
 #define PROCESSOR_ATTACK_DISABLE	82
+#define PROCESSOR_ACTIVATE_EFFECT	83
 
 #define PROCESSOR_DESTROY_S			100
 #define PROCESSOR_RELEASE_S			101

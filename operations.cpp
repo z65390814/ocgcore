@@ -4606,6 +4606,48 @@ int32 field::operation_replace(uint16 step, effect * replace_effect, group * tar
 	}
 	return TRUE;
 }
+int32 field::activate_effect(uint16 step, effect* peffect) {
+	switch(step) {
+	case 0: {
+		card* phandler = peffect->get_handler();
+		int32 playerid = phandler->current.controler;
+		nil_event.event_code = EVENT_FREE_CHAIN;
+		if(!peffect->is_activateable(playerid, nil_event))
+			return TRUE;
+		chain newchain;
+		newchain.flag = 0;
+		newchain.chain_id = infos.field_id++;
+		newchain.evt.event_code = peffect->code;
+		newchain.evt.event_player = PLAYER_NONE;
+		newchain.evt.event_value = 0;
+		newchain.evt.event_cards = 0;
+		newchain.evt.reason = 0;
+		newchain.evt.reason_effect = 0;
+		newchain.evt.reason_player = PLAYER_NONE;
+		newchain.triggering_effect = peffect;
+		newchain.set_triggering_place(phandler);
+		newchain.triggering_player = playerid;
+		core.new_chains.push_back(newchain);
+		phandler->set_status(STATUS_CHAINING, TRUE);
+		peffect->dec_count(playerid);
+		add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
+		add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, FALSE, 1 - playerid);
+		infos.priorities[0] = 0;
+		infos.priorities[1] = 0;
+		return FALSE;
+	}
+	case 1: {
+		for(auto it = core.chain_limit.begin(); it != core.chain_limit.end(); ++it)
+			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, it->function);
+		core.chain_limit.clear();
+		for(auto cait = core.current_chain.begin(); cait != core.current_chain.end(); ++cait)
+			cait->triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
+		add_process(PROCESSOR_SOLVE_CHAIN, 0, 0, 0, FALSE, 0);
+		return TRUE;
+	}
+	}
+	return TRUE;
+}
 int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, int32 min, int32 max, card* smat, group* mg) {
 	switch(step) {
 	case 0: {
@@ -4811,7 +4853,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 		}
 		card_set linked_cards;
 		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-		get_cards_in_zone(&linked_cards, linked_zone, playerid);
+		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		if(linked_cards.find(tuner) != linked_cards.end())
 			ct++;
 		if(smat && linked_cards.find(smat) != linked_cards.end())
@@ -4979,7 +5021,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		card_set linked_cards;
 		if(ct <= 0) {
 			uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-			get_cards_in_zone(&linked_cards, linked_zone, playerid);
+			get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		}
 		for(auto cit = core.xmaterial_lst.begin(); cit != core.xmaterial_lst.end(); ++cit)
 			cit->second->sum_param = 0;
@@ -5047,7 +5089,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		}
 		card_set linked_cards;
 		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-		get_cards_in_zone(&linked_cards, linked_zone, playerid);
+		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		int32 mmax = 0;
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter) {
@@ -5223,7 +5265,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 			return FALSE;
 		card_set linked_cards;
 		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-		get_cards_in_zone(&linked_cards, linked_zone, playerid);
+		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter) {
 			card* pcard = iter->second;

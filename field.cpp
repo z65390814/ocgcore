@@ -72,8 +72,8 @@ field::field(duel* pduel) {
 	core.summoning_card = 0;
 	core.summon_depth = 0;
 	core.summon_cancelable = FALSE;
-	core.chain_limit = 0;
-	core.chain_limit_p = 0;
+	core.chain_limit.clear();
+	core.chain_limit_p.clear();
 	core.chain_solving = FALSE;
 	core.conti_solving = FALSE;
 	core.conti_player = PLAYER_NONE;
@@ -710,7 +710,7 @@ void field::get_linked_cards(uint8 self, uint8 s, uint8 o, card_set* cset) {
 	for(int32 p = 0; p < 2; ++p) {
 		if(c) {
 			uint32 linked_zone = get_linked_zone(self);
-			get_cards_in_zone(cset, linked_zone, self);
+			get_cards_in_zone(cset, linked_zone, self, LOCATION_MZONE);
 		}
 		self = 1 - self;
 		c = o;
@@ -773,9 +773,12 @@ int32 field::check_extra_link(int32 playerid, card* pcard, int32 sequence) {
 	pcard->current.sequence = cur_sequence;
 	return ret;
 }
-void field::get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid) {
+void field::get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid, int32 location) {
+	if(!(location & LOCATION_ONFIELD))
+		return;
+	card_vector& svector = (location == LOCATION_MZONE) ? player[playerid].list_mzone : player[playerid].list_szone;
 	uint32 icheck = 0x1;
-	for(auto it = player[playerid].list_mzone.begin(); it != player[playerid].list_mzone.end(); ++it) {
+	for(auto it = svector.begin(); it != svector.end(); ++it) {
 		if(zone & icheck) {
 			card* pcard = *it;
 			if(pcard)
@@ -2440,7 +2443,7 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 	card_set linked_cards;
 	if(ct <= 0) {
 		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-		get_cards_in_zone(&linked_cards, linked_zone, playerid);
+		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		if(linked_cards.find(tuner) != linked_cards.end())
 			ct++;
 	}
@@ -2741,7 +2744,7 @@ int32 field::check_xyz_material(card* scard, int32 findex, int32 lv, int32 min, 
 	if(ct <= 0) {
 		int32 ft = ct;
 		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-		get_cards_in_zone(&linked_cards, linked_zone, playerid);
+		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		for(auto cit = core.xmaterial_lst.begin(); cit != core.xmaterial_lst.end(); ++cit) {
 			card* pcard = cit->second;
 			if(linked_cards.find(pcard) != linked_cards.end())
@@ -3181,6 +3184,16 @@ int32 field::check_chain_target(uint8 chaincount, card * pcard) {
 	pduel->lua->add_param((ptr)0, PARAM_TYPE_INT);
 	pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 	return pduel->lua->check_condition(peffect->target, 10);
+}
+chain* field::get_chain(uint32 chaincount) {
+	if(chaincount == 0 && core.continuous_chain.size() && (core.reason_effect->type & EFFECT_TYPE_CONTINUOUS))
+		return &core.continuous_chain.back();
+	if(chaincount == 0 || chaincount > core.current_chain.size()) {
+		chaincount = core.current_chain.size();
+		if(chaincount == 0)
+			return 0;
+	}
+	return &core.current_chain[chaincount - 1];
 }
 int32 field::is_able_to_enter_bp() {
 	return ((core.duel_options & DUEL_ATTACK_FIRST_TURN) || infos.turn_id != 1)
