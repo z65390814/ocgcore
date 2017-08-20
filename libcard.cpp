@@ -662,7 +662,7 @@ int32 scriptlib::card_get_destination(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, (pcard->operation_param >> 8) & 0xff);
+	lua_pushinteger(L, pcard->sendto_param.location);
 	return 1;
 }
 int32 scriptlib::card_get_leave_field_dest(lua_State *L) {
@@ -1283,7 +1283,7 @@ int32 scriptlib::card_register_flag_effect(lua_State *L) {
 	peffect->code = code;
 	peffect->reset_flag = reset;
 	peffect->flag[0] = flag | EFFECT_FLAG_CANNOT_DISABLE;
-	peffect->reset_count |= count & 0xff;
+	peffect->reset_count = count;
 	peffect->label = lab;
 	peffect->description = desc;
 	pcard->add_effect(peffect);
@@ -1661,13 +1661,16 @@ int32 scriptlib::card_is_can_be_special_summoned(lua_State *L) {
 	uint32 sumpos = POS_FACEUP;
 	uint32 toplayer = sumplayer;
 	uint32 zone = 0xff;
+	uint32 nozoneusedcheck = 0;
 	if(lua_gettop(L) >= 7)
 		sumpos = lua_tointeger(L, 7);
 	if(lua_gettop(L) >= 8)
 		toplayer = lua_tointeger(L, 8);
 	if(lua_gettop(L) >= 9)
 		zone = lua_tointeger(L, 9);
-	if(pcard->is_can_be_special_summoned(peffect, sumtype, sumpos, sumplayer, toplayer, nocheck, nolimit, zone))
+	if(lua_gettop(L) >= 10)
+		nozoneusedcheck = lua_toboolean(L, 10);
+	if(pcard->is_can_be_special_summoned(peffect, sumtype, sumpos, sumplayer, toplayer, nocheck, nolimit, zone, nozoneusedcheck))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -2192,6 +2195,13 @@ int32 scriptlib::card_set_counter_limit(lua_State *L) {
 	pcard->add_effect(peffect);
 	return 0;
 }
+int32 scriptlib::card_is_can_change_position(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	lua_pushboolean(L, pcard->is_capable_change_position_by_effect(pcard->pduel->game_field->core.reason_player));
+	return 1;
+}
 int32 scriptlib::card_is_can_turn_set(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
@@ -2578,7 +2588,12 @@ int32 scriptlib::card_check_unique_onfield(lua_State *L) {
 	uint32 check_location = LOCATION_ONFIELD;
 	if(lua_gettop(L) > 2)
 		check_location = lua_tointeger(L, 3) & LOCATION_ONFIELD;
-	lua_pushboolean(L, pcard->pduel->game_field->check_unique_onfield(pcard, check_player, check_location) ? 0 : 1);
+	card* icard = 0;
+	if(lua_gettop(L) > 3) {
+		if(check_param(L, PARAM_TYPE_CARD, 4, TRUE))
+			icard = *(card**)lua_touserdata(L, 4);
+	}
+	lua_pushboolean(L, pcard->pduel->game_field->check_unique_onfield(pcard, check_player, check_location, icard) ? 0 : 1);
 	return 1;
 }
 int32 scriptlib::card_reset_negate_effect(lua_State *L) {
