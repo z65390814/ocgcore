@@ -22,11 +22,14 @@ public:
 	static int32 card_get_origin_code(lua_State *L);
 	static int32 card_get_origin_code_rule(lua_State *L);
 	static int32 card_get_fusion_code(lua_State *L);
+	static int32 card_get_link_code(lua_State *L);
 	static int32 card_is_fusion_code(lua_State *L);
+	static int32 card_is_link_code(lua_State *L);
 	static int32 card_is_set_card(lua_State *L);
 	static int32 card_is_origin_set_card(lua_State *L);
 	static int32 card_is_pre_set_card(lua_State *L);
 	static int32 card_is_fusion_set_card(lua_State *L);
+	static int32 card_is_link_set_card(lua_State *L);
 	static int32 card_get_type(lua_State *L);
 	static int32 card_get_origin_type(lua_State *L);
 	static int32 card_get_fusion_type(lua_State *L);
@@ -60,8 +63,10 @@ public:
 	static int32 card_get_attribute(lua_State *L);
 	static int32 card_get_origin_attribute(lua_State *L);
 	static int32 card_get_fusion_attribute(lua_State *L);
+	static int32 card_get_link_attribute(lua_State *L);
 	static int32 card_get_race(lua_State *L);
 	static int32 card_get_origin_race(lua_State *L);
+	static int32 card_get_link_race(lua_State *L);
 	static int32 card_get_attack(lua_State *L);
 	static int32 card_get_origin_attack(lua_State *L);
 	static int32 card_get_text_attack(lua_State *L);
@@ -108,8 +113,10 @@ public:
 	static int32 card_is_rank(lua_State *L);
 	static int32 card_is_link(lua_State *L);
 	static int32 card_is_race(lua_State *L);
+	static int32 card_is_link_race(lua_State *L);
 	static int32 card_is_attribute(lua_State *L);
 	static int32 card_is_fusion_attribute(lua_State *L);
+	static int32 card_is_link_attribute(lua_State *L);
 	static int32 card_is_reason(lua_State *L);
 	static int32 card_is_summon_type(lua_State *L);
 	static int32 card_is_status(lua_State *L);
@@ -388,6 +395,7 @@ public:
 	static int32 duel_set_chain_limit_p(lua_State *L);
 	static int32 duel_get_chain_material(lua_State *L);
 	static int32 duel_confirm_decktop(lua_State *L);
+	static int32 duel_confirm_extratop(lua_State *L);
 	static int32 duel_confirm_cards(lua_State *L);
 	static int32 duel_sort_decktop(lua_State *L);
 	static int32 duel_check_event(lua_State *L);
@@ -412,6 +420,7 @@ public:
 	static int32 duel_discard_hand(lua_State *L);
 	static int32 duel_disable_shuffle_check(lua_State *L);
 	static int32 duel_shuffle_deck(lua_State *L);
+	static int32 duel_shuffle_extra(lua_State *L);
 	static int32 duel_shuffle_hand(lua_State *L);
 	static int32 duel_shuffle_setcard(lua_State *L);
 	static int32 duel_change_attacker(lua_State *L);
@@ -456,6 +465,7 @@ public:
 	static int32 duel_get_field_group(lua_State *L);
 	static int32 duel_get_field_group_count(lua_State *L);
 	static int32 duel_get_decktop_group(lua_State *L);
+	static int32 duel_get_extratop_group(lua_State *L);
 	static int32 duel_get_matching_group(lua_State *L);
 	static int32 duel_get_matching_count(lua_State *L);
 	static int32 duel_get_first_matching_card(lua_State *L);
