@@ -343,6 +343,8 @@ public:
 	processor core;
 	return_value returns;
 	tevent nil_event;
+	card* rose_card;
+	uint32 rose_level;
 
 	static int32 field_used_count[32];
 	explicit field(duel* pduel);
@@ -776,6 +778,9 @@ public:
 #define PROCESSOR_REMOVEOL_S		160
 #define PROCESSOR_MOVETOFIELD_S		161
 
+#define PROCESSOR_SELECT_UNSELECT_CARD		180
+#define PROCESSOR_SELECT_UNSELECT_CARD_S	181
+
 //Hints
 #define HINT_EVENT				1
 #define HINT_MESSAGE			2
@@ -787,6 +792,10 @@ public:
 #define HINT_CODE				8
 #define HINT_NUMBER				9
 #define HINT_CARD				10
+//custom hints in KoishiPro for custom sound
+#define HINT_MUSIC				11
+#define HINT_SOUND				12
+#define HINT_MUSIC_OGG			13
 //
 #define CHINT_TURN				1
 #define CHINT_CARD				2
@@ -911,5 +920,19 @@ public:
 #define MSG_PLAYER_HINT			165
 #define MSG_MATCH_KILL			170
 #define MSG_CUSTOM_MSG			180
+
+//card datas for Duel.ReadCard / Card.SetCardData, arranged by database format
+#define CARDDATA_CODE			1
+#define CARDDATA_ALIAS			2
+#define CARDDATA_SETCODE		3
+#define CARDDATA_TYPE			4
+#define CARDDATA_LEVEL			5
+#define CARDDATA_ATTRIBUTE		6
+#define CARDDATA_RACE			7
+#define CARDDATA_ATTACK			8
+#define CARDDATA_DEFENSE		9
+#define CARDDATA_LSCALE			10
+#define CARDDATA_RSCALE			11
+#define CARDDATA_LINK_MARKER	12
 
 #endif /* FIELD_H_ */
