@@ -840,11 +840,14 @@ int32 interpreter::load_card_script(uint32 code) {
 		//load special and extra scripts first
 		sprintf(script_name, "./specials/c%d.lua", code);
 		if (!load_script(script_name)) {
-			sprintf(script_name, "./expansions/script/c%d.lua", code);
+			sprintf(script_name, "./beta/script/c%d.lua", code);
 			if (!load_script(script_name)) {
-				sprintf(script_name, "./script/c%d.lua", code);
+				sprintf(script_name, "./expansions/script/c%d.lua", code);
 				if (!load_script(script_name)) {
-					return OPERATION_FAIL;
+					sprintf(script_name, "./script/c%d.lua", code);
+					if (!load_script(script_name)) {
+						return OPERATION_FAIL;
+					}
 				}
 			}
 		}
