@@ -337,7 +337,10 @@ static const struct luaL_Reg effectlib[] = {
 static const struct luaL_Reg grouplib[] = {
 	//metatable
 	{ "__add", scriptlib::group_meta_add },
+	{ "__bor", scriptlib::group_meta_add },
 	{ "__sub", scriptlib::group_meta_sub },
+	{ "__band", scriptlib::group_meta_band },
+	{ "__bxor", scriptlib::group_meta_bxor },
 
 	{ "CreateGroup", scriptlib::group_new },
 	{ "KeepAlive", scriptlib::group_keep_alive },
