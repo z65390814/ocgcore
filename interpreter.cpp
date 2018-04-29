@@ -335,11 +335,6 @@ static const struct luaL_Reg effectlib[] = {
 };
 
 static const struct luaL_Reg grouplib[] = {
-	{ "__add", scriptlib::group_meta_add },
-	{ "__bor", scriptlib::group_meta_add },
-	{ "__sub", scriptlib::group_meta_sub },
-	{ "__band", scriptlib::group_meta_band },
-	{ "__bxor", scriptlib::group_meta_bxor },
 	{ "CreateGroup", scriptlib::group_new },
 	{ "KeepAlive", scriptlib::group_keep_alive },
 	{ "DeleteGroup", scriptlib::group_delete },
@@ -375,6 +370,11 @@ static const struct luaL_Reg grouplib[] = {
 	{ "IsContains", scriptlib::group_is_contains },
 	{ "SearchCard", scriptlib::group_search_card },
 	{ "GetBinClassCount", scriptlib::group_get_bin_class_count },
+	{ "__add", scriptlib::group_meta_add },
+	{ "__bor", scriptlib::group_meta_add },
+	{ "__sub", scriptlib::group_meta_sub },
+	{ "__band", scriptlib::group_meta_band },
+	{ "__bxor", scriptlib::group_meta_bxor },
 	{ NULL, NULL }
 };
 
