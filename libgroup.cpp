@@ -11,8 +11,6 @@
 #include "effect.h"
 #include "duel.h"
 
-//metatables
-//metatable functions
 int32 scriptlib::group_meta_add(lua_State* L) {
 	check_param_count(L, 2);
 	if(!check_param(L, PARAM_TYPE_CARD, 1, TRUE) && !check_param(L, PARAM_TYPE_GROUP, 1, TRUE))
@@ -130,7 +128,6 @@ int32 scriptlib::group_meta_bxor(lua_State* L) {
 	interpreter::group2value(L, pgroup);
 	return 1;
 }
-
 int32 scriptlib::group_new(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
