@@ -1420,6 +1420,12 @@ int32 card::is_extra_link_state() {
 		card* pcard2 = pduel->game_field->player[p].list_mzone[6];
 		if(pcard2)
 			excset.insert(pcard2);
+		card* pcard3 = pduel->game_field->player[1 - p].list_mzone[5];
+		if(pcard3)
+			excset.insert(pcard3);
+		card* pcard4 = pduel->game_field->player[1 - p].list_mzone[6];
+		if(pcard4)
+			excset.insert(pcard4);
 	}
 	if(excset.size() < 2)
 		return FALSE;
@@ -1438,7 +1444,7 @@ int32 card::check_extra_link(card_set* cset, card_set* excset, card_set* linked_
 		card* pcard = *cit;
 		if(cset->find(pcard) != cset->end())
 			continue;
-		if(excset->find(pcard) != cset->end())
+		if(excset->find(pcard) != excset->end())
 			if(cset->find(this) != cset->end())
 				return TRUE;
 		card_set linked_group2;
