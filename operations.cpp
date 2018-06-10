@@ -156,7 +156,7 @@ void field::special_summon_rule(uint32 sumplayer, card* target, uint32 summon_ty
 }
 void field::special_summon(card_set* target, uint32 sumtype, uint32 sumplayer, uint32 playerid, uint32 nocheck, uint32 nolimit, uint32 positions, uint32 zone) {
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
-		positions = (positions & POS_FACEUP) | (positions >> 1);
+		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
 	for(auto cit = target->begin(); cit != target->end(); ++cit) {
 		card* pcard = *cit;
 		pcard->temp.reason = pcard->current.reason;
@@ -175,7 +175,7 @@ void field::special_summon(card_set* target, uint32 sumtype, uint32 sumplayer, u
 }
 void field::special_summon_step(card* target, uint32 sumtype, uint32 sumplayer, uint32 playerid, uint32 nocheck, uint32 nolimit, uint32 positions, uint32 zone) {
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
-		positions = (positions & POS_FACEUP) | (positions >> 1);
+		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
 	target->temp.reason = target->current.reason;
 	target->temp.reason_effect = target->current.reason_effect;
 	target->temp.reason_player = target->current.reason_player;
@@ -3704,6 +3704,12 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				pcard->sendto_param.location = redirect;
 				pcard->sendto_param.sequence = redirect_seq;
 				dest = redirect;
+				if(dest == LOCATION_REMOVED) {
+					if(pcard->sendto_param.position & POS_FACEDOWN_ATTACK)
+						pcard->sendto_param.position = (pcard->sendto_param.position & ~POS_FACEDOWN_ATTACK) | POS_FACEUP_ATTACK;
+					if(pcard->sendto_param.position & POS_FACEDOWN_DEFENSE)
+						pcard->sendto_param.position = (pcard->sendto_param.position & ~POS_FACEDOWN_DEFENSE) | POS_FACEUP_DEFENSE;
+				}
 			}
 			redirect = pcard->destination_redirect(dest, pcard->current.reason);
 			if(redirect) {
