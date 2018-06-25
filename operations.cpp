@@ -4185,6 +4185,14 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			}
 			if(ct <= 0)
 				return TRUE;
+			if((zone & zone - 1) == 0) {
+				for(uint8 seq = 0; seq < 8; seq++) {
+					if((1 << seq) & zone) {
+						returns.bvalue[2] = seq;
+						return FALSE;
+					}
+				}
+			}
 			if(move_player == playerid) {
 				if(location == LOCATION_SZONE)
 					flag = ((flag & 0xff) << 8) | 0xffff00ff;
