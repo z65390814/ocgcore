@@ -983,7 +983,17 @@ uint32 card::get_link() {
 }
 uint32 card::get_synchro_level(card* pcard) {
 	if((data.type & (TYPE_XYZ | TYPE_LINK)) || (status & STATUS_NO_LEVEL))
-		return 0;
+	{
+		uint32 lev;
+		effect_set eset;
+		filter_effect(EFFECT_ALLOW_SYNCHRO_KOISHI, &eset);
+		if(eset.size())
+			lev = eset[0]->get_value(pcard);
+		else
+			lev = 0;
+		return lev;
+	}
+		//return 0;
 	uint32 lev;
 	effect_set eset;
 	filter_effect(EFFECT_SYNCHRO_LEVEL, &eset);
@@ -3670,7 +3680,8 @@ int32 card::is_can_be_fusion_material(card* fcard) {
 	return TRUE;
 }
 int32 card::is_can_be_synchro_material(card* scard, card* tuner) {
-	if(data.type & (TYPE_XYZ | TYPE_LINK))
+	//support urara
+	if(data.type & (TYPE_XYZ | TYPE_LINK) && !is_affected_by_effect(EFFECT_ALLOW_SYNCHRO_KOISHI))
 		return FALSE;
 	if(!(get_synchro_type() & TYPE_MONSTER))
 		return FALSE;
