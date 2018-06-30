@@ -377,6 +377,9 @@ int32 scriptlib::duel_sets(lua_State *L) {
 		toplayer = lua_tointeger(L, 3);
 	if(toplayer != 0 && toplayer != 1)
 		toplayer = playerid;
+	uint32 confirm = TRUE;
+	if(lua_gettop(L) > 3)
+		confirm = lua_toboolean(L, 4);
 	card* pcard = 0;
 	group* pgroup = 0;
 	duel* pduel = 0;
@@ -385,13 +388,20 @@ int32 scriptlib::duel_sets(lua_State *L) {
 		pduel = pcard->pduel;
 	} else if(check_param(L, PARAM_TYPE_GROUP, 2, TRUE)) {
 		pgroup = *(group**) lua_touserdata(L, 2);
-		pduel = pgroup->pduel;
+		if(pgroup->container.empty()) {
+			return 0;
+		} else if(pgroup->container.size() == 1) {
+			pcard = *pgroup->container.begin();
+			pduel = pcard->pduel;
+		} else {
+			pduel = pgroup->pduel;
+		}
 	} else
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 2);
 	if(pcard)
 		pduel->game_field->add_process(PROCESSOR_SSET, 0, 0, (group*)pcard, playerid, toplayer);
 	else
-		pduel->game_field->add_process(PROCESSOR_SSET_G, 0, 0, pgroup, playerid, toplayer);
+		pduel->game_field->add_process(PROCESSOR_SSET_G, 0, 0, pgroup, playerid, toplayer, confirm);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_create_token(lua_State *L) {
@@ -435,9 +445,9 @@ int32 scriptlib::duel_special_summon(lua_State *L) {
 	if(lua_gettop(L) >= 8)
 		zone = lua_tointeger(L, 8);
 	if(pcard) {
-		pduel->game_field->core.temp_set.clear();
-		pduel->game_field->core.temp_set.insert(pcard);
-		pduel->game_field->special_summon(&pduel->game_field->core.temp_set, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
+		field::card_set cset;
+		cset.insert(pcard);
+		pduel->game_field->special_summon(&cset, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
 	} else
 		pduel->game_field->special_summon(&(pgroup->container), sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
 	pduel->game_field->core.subunits.back().type = PROCESSOR_SPSUMMON_S;
@@ -629,9 +639,9 @@ int32 scriptlib::duel_change_form(lua_State *L) {
 	if(top > 5 && lua_toboolean(L, 6)) flag |= NO_FLIP_EFFECT;
 	if(top > 6 && lua_toboolean(L, 7)) flag |= FLIP_SET_AVAILABLE;
 	if(pcard) {
-		pduel->game_field->core.temp_set.clear();
-		pduel->game_field->core.temp_set.insert(pcard);
-		pduel->game_field->change_position(&pduel->game_field->core.temp_set, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
+		field::card_set cset;
+		cset.insert(pcard);
+		pduel->game_field->change_position(&cset, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
 	} else
 		pduel->game_field->change_position(&(pgroup->container), pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
 	pduel->game_field->core.subunits.back().type = PROCESSOR_CHANGEPOS_S;

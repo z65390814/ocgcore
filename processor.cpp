@@ -417,7 +417,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_SSET_G: {
-		if (sset_g(it->step, it->arg1, it->arg2, it->ptarget)) {
+		if (sset_g(it->step, it->arg1, it->arg2, it->ptarget, it->arg3)) {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else
@@ -2106,7 +2106,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 				        && peffect->is_chainable(priority) && peffect->is_activateable(priority, clit->evt, TRUE)) {
 					for(auto cait = core.current_chain.begin(); cait != core.current_chain.end(); ++cait) {
 						if(cait->triggering_player == priority) {
-							if(std::any_of(core.new_ochain_h.begin(), core.new_ochain_h.end(), [=](chain ch) { return ch.chain_id == cait->chain_id; })) {
+							if((peffect->status & EFFECT_STATUS_SPSELF) && (cait->triggering_effect->status & EFFECT_STATUS_SPSELF)
+								&& std::any_of(core.new_ochain_h.begin(), core.new_ochain_h.end(), [=](chain ch) { return ch.chain_id == cait->chain_id; })) {
 								act = false;
 								break;
 							}
