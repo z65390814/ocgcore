@@ -600,20 +600,15 @@ int32 field::pay_lp_cost(uint32 step, uint8 playerid, uint32 cost) {
 	case 0: {
 		effect_set eset;
 		int32 val = cost;
-		if(cost == 0) {
-			raise_event((card*)0, EVENT_PAY_LPCOST, core.reason_effect, 0, playerid, playerid, cost);
-			process_instant_event();
-			return TRUE;
-		}
 		filter_player_effect(playerid, EFFECT_LPCOST_CHANGE, &eset);
 		for(int32 i = 0; i < eset.size(); ++i) {
 			pduel->lua->add_param(core.reason_effect, PARAM_TYPE_EFFECT);
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			pduel->lua->add_param(val, PARAM_TYPE_INT);
 			val = eset[i]->get_value(3);
-			if(val <= 0)
-				return TRUE;
 		}
+		if(val <= 0)
+			return TRUE;
 		core.units.begin()->arg2 = val;
 		tevent e;
 		e.event_cards = 0;
@@ -3664,7 +3659,7 @@ int32 field::send_to(uint16 step, group * targets, card * target) {
 int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint32 reason, uint8 reason_player) {
 	struct exargs {
 		group* targets;
-		card_set leave, discard, detach;
+		card_set leave, detach;
 		bool show_decktop[2];
 		card_vector cv;
 		card_vector::iterator cvit;
@@ -3950,8 +3945,6 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 			pcard->reset(RESET_LEAVE, RESET_EVENT);
 			param->leave.insert(pcard);
 		}
-		if(pcard->current.reason & REASON_DISCARD)
-			param->discard.insert(pcard);
 		++param->cvit;
 		core.units.begin()->step = 4;
 		return FALSE;
@@ -3994,8 +3987,6 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 			pcard->reset(RESET_LEAVE + RESET_MSCHANGE, RESET_EVENT);
 			param->leave.insert(pcard);
 		}
-		if(pcard->current.reason & REASON_DISCARD)
-			param->discard.insert(pcard);
 		if(param->predirect->operation) {
 			tevent e;
 			e.event_cards = targets;
@@ -4037,8 +4028,6 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 		}
 		for(auto iter = param->leave.begin(); iter != param->leave.end(); ++iter)
 			raise_single_event(*iter, 0, EVENT_LEAVE_FIELD, (*iter)->current.reason_effect, (*iter)->current.reason, (*iter)->current.reason_player, 0, 0);
-		for(auto iter = param->discard.begin(); iter != param->discard.end(); ++iter)
-			raise_single_event(*iter, 0, EVENT_DISCARD, (*iter)->current.reason_effect, (*iter)->current.reason, (*iter)->current.reason_player, 0, 0);
 		if((core.global_flag & GLOBALFLAG_DETACH_EVENT) && param->detach.size()) {
 			for(auto iter = param->detach.begin(); iter != param->detach.end(); ++iter) {
 				if((*iter)->current.location & LOCATION_MZONE)
@@ -4048,8 +4037,6 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 		process_single_event();
 		if(param->leave.size())
 			raise_event(&param->leave, EVENT_LEAVE_FIELD, reason_effect, reason, reason_player, 0, 0);
-		if(param->discard.size())
-			raise_event(&param->discard, EVENT_DISCARD, reason_effect, reason, reason_player, 0, 0);
 		if((core.global_flag & GLOBALFLAG_DETACH_EVENT) && param->detach.size())
 			raise_event(&param->detach, EVENT_DETACH_MATERIAL, reason_effect, reason, reason_player, 0, 0);
 		process_instant_event();
@@ -4061,12 +4048,11 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 		core.units.begin()->ptarget = param->targets;
 		targets = param->targets;
 		delete param;
-		uint8 nloc;
-		card_set tohand, todeck, tograve, remove, released, destroyed, retgrave;
+		card_set tohand, todeck, tograve, remove, discard, released, destroyed, retgrave;
 		card_set equipings, overlays;
 		for(auto cit = targets->container.begin(); cit != targets->container.end(); ++cit) {
 			card* pcard = *cit;
-			nloc = pcard->current.location;
+			uint8 nloc = pcard->current.location;
 			if(pcard->equiping_target)
 				pcard->unequip();
 			if(pcard->equiping_cards.size()) {
@@ -4106,6 +4092,10 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 					pcard->reset(RESET_REMOVE, RESET_EVENT);
 				raise_single_event(pcard, 0, EVENT_REMOVE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, 0, 0);
 			}
+			if(pcard->current.reason & REASON_DISCARD) {
+				discard.insert(pcard);
+				raise_single_event(pcard, 0, EVENT_DISCARD, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, 0, 0);
+			}
 			if(pcard->current.reason & REASON_RELEASE) {
 				released.insert(pcard);
 				raise_single_event(pcard, 0, EVENT_RELEASE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, 0, 0);
@@ -4129,6 +4119,8 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 			raise_event(&tograve, EVENT_TO_GRAVE, reason_effect, reason, reason_player, 0, 0);
 		if(remove.size())
 			raise_event(&remove, EVENT_REMOVE, reason_effect, reason, reason_player, 0, 0);
+		if(discard.size())
+			raise_event(&discard, EVENT_DISCARD, reason_effect, reason, reason_player, 0, 0);
 		if(released.size())
 			raise_event(&released, EVENT_RELEASE, reason_effect, reason, reason_player, 0, 0);
 		if(destroyed.size())
