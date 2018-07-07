@@ -64,7 +64,7 @@ extern "C" DECL_DLLEXPORT ptr create_duel(uint32 seed) {
 	pduel->lua->call_code_function(0, (char*) "PreloadUds", 0, 0);
 	return (ptr)pduel;
 }
-extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int options) {
+extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int32 options) {
 	duel* pd = (duel*)pduel;
 	pd->game_field->core.duel_options |= options & 0xffff;
 	int32 duel_rule = options >> 16;
@@ -270,7 +270,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint
 			}
 		}
 	} else {
-		field::card_vector* lst;
+		field::card_vector* lst = 0;
 		if(location == LOCATION_HAND)
 			lst = &player.list_hand;
 		else if(location == LOCATION_GRAVE)
