@@ -31,6 +31,11 @@ uint32 card::set_entity_code(uint32 entity_code, bool remove_alias) {
 	if (remove_alias && dat.alias)
 		dat.alias = 0;
 	data = dat;
+	pduel->write_buffer8(MSG_MOVE);
+	pduel->write_buffer32(data.code);
+	pduel->write_buffer32(get_info_location());
+	pduel->write_buffer32(get_info_location());
+	pduel->write_buffer32(0);
 	return code;
 }
 
