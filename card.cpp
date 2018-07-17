@@ -3461,9 +3461,11 @@ int32 card::is_capable_send_to_grave(uint8 playerid) {
 int32 card::is_capable_send_to_hand(uint8 playerid) {
 	if(is_status(STATUS_LEAVE_CONFIRMED))
 		return FALSE;
-	if((current.location == LOCATION_EXTRA) && (data.type & (TYPE_FUSION + TYPE_SYNCHRO + TYPE_XYZ + TYPE_LINK)))
+	if((current.location == LOCATION_EXTRA) && is_extra_deck_monster())
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_TO_HAND))
+		return FALSE;
+	if(is_extra_deck_monster() && !is_capable_send_to_deck(playerid))
 		return FALSE;
 	if(!pduel->game_field->is_player_can_send_to_hand(playerid, this))
 		return FALSE;
@@ -3472,7 +3474,7 @@ int32 card::is_capable_send_to_hand(uint8 playerid) {
 int32 card::is_capable_send_to_deck(uint8 playerid) {
 	if(is_status(STATUS_LEAVE_CONFIRMED))
 		return FALSE;
-	if((current.location == LOCATION_EXTRA) && (data.type & (TYPE_FUSION + TYPE_SYNCHRO + TYPE_XYZ + TYPE_LINK)))
+	if((current.location == LOCATION_EXTRA) && is_extra_deck_monster())
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_TO_DECK))
 		return FALSE;
@@ -3481,7 +3483,7 @@ int32 card::is_capable_send_to_deck(uint8 playerid) {
 	return TRUE;
 }
 int32 card::is_capable_send_to_extra(uint8 playerid) {
-	if(!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_PENDULUM | TYPE_LINK)))
+	if(!is_extra_deck_monster() && !(data.type & TYPE_PENDULUM))
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_TO_DECK))
 		return FALSE;
@@ -3519,7 +3521,7 @@ int32 card::is_capable_cost_to_grave(uint8 playerid) {
 int32 card::is_capable_cost_to_hand(uint8 playerid) {
 	uint32 redirect = 0;
 	uint32 dest = LOCATION_HAND;
-	if(data.type & (TYPE_TOKEN | TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK))
+	if(data.type & (TYPE_TOKEN) || is_extra_deck_monster())
 		return FALSE;
 	if(current.location == LOCATION_HAND)
 		return FALSE;
@@ -3542,7 +3544,7 @@ int32 card::is_capable_cost_to_hand(uint8 playerid) {
 int32 card::is_capable_cost_to_deck(uint8 playerid) {
 	uint32 redirect = 0;
 	uint32 dest = LOCATION_DECK;
-	if(data.type & (TYPE_TOKEN | TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK))
+	if(data.type & (TYPE_TOKEN) || is_extra_deck_monster())
 		return FALSE;
 	if(current.location == LOCATION_DECK)
 		return FALSE;
@@ -3565,7 +3567,7 @@ int32 card::is_capable_cost_to_deck(uint8 playerid) {
 int32 card::is_capable_cost_to_extra(uint8 playerid) {
 	uint32 redirect = 0;
 	uint32 dest = LOCATION_DECK;
-	if(!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)))
+	if(!is_extra_deck_monster())
 		return FALSE;
 	if(current.location == LOCATION_EXTRA)
 		return FALSE;
