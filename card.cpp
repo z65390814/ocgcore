@@ -1009,6 +1009,14 @@ uint32 card::get_synchro_level(card* pcard) {
 	return lev;
 }
 uint32 card::get_ritual_level(card* pcard) {
+	effect_set eset_g;
+	filter_effect(EFFECT_MINIATURE_GARDEN_GIRL, &eset_g);
+	for(int32 i = 0; i < eset_g.size(); ++i) {
+		pduel->lua->add_param(eset_g[i], PARAM_TYPE_EFFECT);
+		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+		if(pduel->lua->check_condition(eset_g[i]->target, 2))
+			return pcard->get_level();
+	}
 	if((data.type & (TYPE_XYZ | TYPE_LINK)) || (status & STATUS_NO_LEVEL))
 		return 0;
 	uint32 lev;

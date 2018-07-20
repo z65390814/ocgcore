@@ -1781,13 +1781,13 @@ int32 field::get_draw_count(uint8 playerid) {
 void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* material) {
 	for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {
 		card* pcard = *cit;
-		if(pcard && pcard->get_level() && pcard->is_affect_by_effect(peffect)
+		if(pcard && (pcard->get_level() || pcard->is_affected_by_effect(EFFECT_MINIATURE_GARDEN_GIRL)) && pcard->is_affect_by_effect(peffect)
 		        && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_releasable_by_effect(playerid, peffect))
 			material->insert(pcard);
 	}
 	for(auto cit = player[1 - playerid].list_mzone.begin(); cit != player[1 - playerid].list_mzone.end(); ++cit) {
 		card* pcard = *cit;
-		if(pcard && pcard->get_level() && pcard->is_affect_by_effect(peffect)
+		if(pcard && (pcard->get_level() || pcard->is_affected_by_effect(EFFECT_MINIATURE_GARDEN_GIRL)) && pcard->is_affect_by_effect(peffect)
 		        && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)
 		        && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_releasable_by_effect(playerid, peffect))
 			material->insert(pcard);

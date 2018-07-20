@@ -707,6 +707,8 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	lua_setglobal(lua_state, "EFFECT_OVERLAY_REMOVE_COST_CHANGE_KOISHI");
 	lua_pushinteger(lua_state, EFFECT_ALLOW_SYNCHRO_KOISHI);
 	lua_setglobal(lua_state, "EFFECT_ALLOW_SYNCHRO_KOISHI");
+	lua_pushinteger(lua_state, EFFECT_MINIATURE_GARDEN_GIRL);
+	lua_setglobal(lua_state, "EFFECT_MINIATURE_GARDEN_GIRL");
 	//music hints
 	lua_pushinteger(lua_state, HINT_MUSIC);
 	lua_setglobal(lua_state, "HINT_MUSIC");
