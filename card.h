@@ -110,6 +110,7 @@ public:
 	//millux
 	uint32 get_ritual_type();
 	uint32 set_entity_code(uint32 entity_code, bool remove_alias = false);
+	uint32 get_summon_info();
 
 	struct sendto_param_t {
 		void set(uint8 p, uint8 pos, uint8 loc, uint8 seq = 0) {

@@ -709,6 +709,14 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	lua_setglobal(lua_state, "EFFECT_ALLOW_SYNCHRO_KOISHI");
 	lua_pushinteger(lua_state, EFFECT_MINIATURE_GARDEN_GIRL);
 	lua_setglobal(lua_state, "EFFECT_MINIATURE_GARDEN_GIRL");
+	lua_pushinteger(lua_state, EFFECT_ADD_SUMMON_TYPE_KOISHI);
+	lua_setglobal(lua_state, "EFFECT_ADD_SUMMON_TYPE_KOISHI");
+	lua_pushinteger(lua_state, EFFECT_REMOVE_SUMMON_TYPE_KOISHI);
+	lua_setglobal(lua_state, "EFFECT_REMOVE_SUMMON_TYPE_KOISHI");
+	lua_pushinteger(lua_state, EFFECT_CHANGE_SUMMON_TYPE_KOISHI);
+	lua_setglobal(lua_state, "EFFECT_CHANGE_SUMMON_TYPE_KOISHI");
+	lua_pushinteger(lua_state, EFFECT_CHANGE_SUMMON_LOCATION_KOISHI);
+	lua_setglobal(lua_state, "EFFECT_CHANGE_SUMMON_LOCATION_KOISHI");
 	//music hints
 	lua_pushinteger(lua_state, HINT_MUSIC);
 	lua_setglobal(lua_state, "HINT_MUSIC");
