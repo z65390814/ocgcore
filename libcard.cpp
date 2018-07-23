@@ -40,6 +40,7 @@ int32 scriptlib::card_set_card_data(lua_State *L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
+	duel* pduel = pcard->pduel;
 	int32 stype = lua_tointeger(L, 2);
 	switch(stype) {
 	case CARDDATA_CODE:
@@ -79,6 +80,11 @@ int32 scriptlib::card_set_card_data(lua_State *L) {
 		pcard->data.link_marker = lua_tointeger(L, 3);
 		break;
 	}
+	pduel->write_buffer8(MSG_MOVE);
+	pduel->write_buffer32(pcard->data.code);
+	pduel->write_buffer32(pcard->get_info_location());
+	pduel->write_buffer32(pcard->get_info_location());
+	pduel->write_buffer32(0);
 	return 0;
 }
 int32 scriptlib::card_get_link_marker(lua_State *L) {
