@@ -128,6 +128,13 @@ int32 scriptlib::card_is_xyz_summonable_by_rose(lua_State *L) {
 	lua_pushboolean(L, result);
 	return 1;
 }
+int32 scriptlib::card_get_removed_overlay_count(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	lua_pushinteger(L, pcard->removed_overlay_count);
+	return 1;
+}
 
 int32 scriptlib::card_get_code(lua_State *L) {
 	check_param_count(L, 1);

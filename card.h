@@ -108,6 +108,7 @@ public:
 	};
 
 	//millux
+
 	uint32 get_ritual_type();
 	uint32 set_entity_code(uint32 entity_code, bool remove_alias = false);
 	uint32 get_summon_info();
@@ -151,6 +152,7 @@ public:
 	uint8 direct_attackable;
 	uint8 announce_count;
 	uint8 attacked_count;
+	uint8 removed_overlay_count;
 	uint8 attack_all_target;
 	uint8 attack_controler;
 	uint16 cardid;

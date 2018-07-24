@@ -3979,6 +3979,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 				pcard->indestructable_effects.clear();
 				pcard->announce_count = 0;
 				pcard->attacked_count = 0;
+				pcard->removed_overlay_count = 0;
 				pcard->announced_cards.clear();
 				pcard->attacked_cards.clear();
 				pcard->battled_cards.clear();
@@ -4191,6 +4192,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 						continue;
 					pcard->announce_count = 0;
 					pcard->attacked_count = 0;
+					pcard->removed_overlay_count = 0;
 					pcard->announced_cards.clear();
 					pcard->attacked_cards.clear();
 					pcard->battled_cards.clear();

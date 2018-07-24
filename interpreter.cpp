@@ -22,7 +22,8 @@ static const struct luaL_Reg cardlib[] = {
 	{ "SetCardData", scriptlib::card_set_card_data },
 	{ "GetLinkMarker", scriptlib::card_get_link_marker },
 	{ "GetOriginalLinkMarker", scriptlib::card_get_origin_link_marker },
-	{ "IsXyzSummonableByRose", scriptlib::card_is_xyz_summonable_by_rose },	
+	{ "IsXyzSummonableByRose", scriptlib::card_is_xyz_summonable_by_rose },
+	{ "GetRemovedOverlayCount", scriptlib::card_get_removed_overlay_count },
 	
 	{ "GetCode", scriptlib::card_get_code },
 	{ "GetOriginalCode", scriptlib::card_get_origin_code },

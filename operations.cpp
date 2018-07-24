@@ -837,6 +837,11 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 
 		card_set cset;
 		for(int32 i = 0; i < returns.bvalue[0]; ++i)
 			cset.insert(core.select_cards[returns.bvalue[i + 1]]);
+		for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
+			card* xcard = *cit;
+			if(xcard->overlay_target)
+				xcard->overlay_target->removed_overlay_count++;
+		}
 		send_to(&cset, core.reason_effect, reason, rplayer, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
