@@ -29,7 +29,7 @@ int32 field::negate_chain(uint8 chaincount) {
 		}
 		pduel->write_buffer8(MSG_CHAIN_NEGATED);
 		pduel->write_buffer8(chaincount);
-		if(pchain.triggering_effect->is_flag(EFFECT_FLAG2_NAGA))
+		if(pchain.flag & CHAIN_DECK_EFFECT)
 			return FALSE;
 		return TRUE;
 	}
@@ -48,7 +48,7 @@ int32 field::disable_chain(uint8 chaincount) {
 		core.current_chain[chaincount - 1].disable_player = core.reason_player;
 		pduel->write_buffer8(MSG_CHAIN_DISABLED);
 		pduel->write_buffer8(chaincount);
-		if(pchain.triggering_effect->is_flag(EFFECT_FLAG2_NAGA))
+		if(pchain.flag & CHAIN_DECK_EFFECT)
 			return FALSE;
 		return TRUE;
 	}
@@ -4382,6 +4382,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 						&& !(peffect && (peffect->value & TYPE_TRAP)) && ret != 2)
 					resetflag |= RESET_MSCHANGE;
 				target->reset(resetflag, RESET_EVENT);
+				target->clear_card_target();
 			}
 			if(!(target->current.location & LOCATION_ONFIELD))
 				target->clear_relate_effect();
@@ -4458,7 +4459,6 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 		}
 		if((target->previous.location == LOCATION_SZONE) && target->equiping_target)
 			target->unequip();
-		target->clear_card_target();
 		if(target->current.location == LOCATION_MZONE) {
 			effect_set eset;
 			filter_player_effect(0, EFFECT_MUST_USE_MZONE, &eset, FALSE);
