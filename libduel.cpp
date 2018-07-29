@@ -166,9 +166,9 @@ int32 scriptlib::duel_get_cards_in_zone(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	field::card_set cset;
 	pduel->game_field->get_cards_in_zone(&cset, zone, rplayer, LOCATION_MZONE);
-	pduel->game_field->get_cards_in_zone(&cset, zone, rplayer, LOCATION_SZONE);
+	pduel->game_field->get_cards_in_zone(&cset, zone >> 8, rplayer, LOCATION_SZONE);
 	pduel->game_field->get_cards_in_zone(&cset, zone >> 16, 1 - rplayer, LOCATION_MZONE);
-	pduel->game_field->get_cards_in_zone(&cset, zone >> 16, 1 - rplayer, LOCATION_SZONE);
+	pduel->game_field->get_cards_in_zone(&cset, zone >> 24, 1 - rplayer, LOCATION_SZONE);
 	group* pgroup = pduel->new_group(cset);
 	interpreter::group2value(L, pgroup);
 	return 1;
