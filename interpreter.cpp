@@ -693,6 +693,9 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	lua_setglobal(lua_state, "CARDDATA_RSCALE");
 	lua_pushinteger(lua_state, CARDDATA_LINK_MARKER);
 	lua_setglobal(lua_state, "CARDDATA_LINK_MARKER");
+	//effect flag2s
+	lua_pushinteger(lua_state, EFFECT_FLAG2_SPOSITCH);
+	lua_setglobal(lua_state, "EFFECT_FLAG2_SPOSITCH");
 	//effects
 	lua_pushinteger(lua_state, EFFECT_CHANGE_LINK_MARKER_KOISHI);
 	lua_setglobal(lua_state, "EFFECT_CHANGE_LINK_MARKER_KOISHI");

@@ -4278,6 +4278,9 @@ int32 field::add_chain(uint16 step) {
 				else if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY)
 				        && infos.turn_player != phandler->current.controler)
 					ecode = EFFECT_QP_ACT_IN_NTPHAND;
+				else if((phandler->data.type & TYPE_PENDULUM) && peffect->is_flag(EFFECT_FLAG2_SPOSITCH)
+				        && infos.turn_player != phandler->current.controler)
+					ecode = EFFECT_QP_ACT_IN_NTPHAND;
 			} else if(phandler->current.location == LOCATION_SZONE) {
 				if((phandler->data.type & TYPE_TRAP) && phandler->get_status(STATUS_SET_TURN))
 					ecode = EFFECT_TRAP_ACT_IN_SET_TURN;
@@ -4337,6 +4340,8 @@ int32 field::add_chain(uint16 step) {
 		if((peffect->card_type & 0x5) == 0x5)
 			peffect->card_type -= TYPE_TRAP;
 		peffect->active_type = peffect->card_type;
+		if(peffect->is_flag(EFFECT_FLAG2_SPOSITCH))
+			peffect->active_type |= TYPE_QUICKPLAY;
 		peffect->active_handler = peffect->handler->overlay_target;
 		clit.chain_count = core.current_chain.size() + 1;
 		clit.target_cards = 0;
