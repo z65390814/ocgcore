@@ -13,6 +13,7 @@
 
 class scriptlib {
 public:
+	static int32 check_data_type(lua_State* L, int32 index, const char* tname);
 	static int32 check_param(lua_State* L, int32 param_type, int32 index, BOOL retfalse = FALSE);
 	static int32 check_param_count(lua_State* L, int32 count);
 	static int32 check_action_permission(lua_State* L);
@@ -556,6 +557,7 @@ public:
 	static int32 duel_is_player_can_send_to_hand(lua_State *L);
 	static int32 duel_is_player_can_send_to_grave(lua_State *L);
 	static int32 duel_is_player_can_send_to_deck(lua_State *L);
+	static int32 duel_is_player_can_additional_summon(lua_State *L);
 	static int32 duel_is_chain_negatable(lua_State *L);
 	static int32 duel_is_chain_disablable(lua_State *L);
 	static int32 duel_check_chain_target(lua_State *L);

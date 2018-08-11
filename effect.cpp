@@ -15,7 +15,6 @@ bool effect_sort_id(const effect* e1, const effect* e2) {
 	return e1->id < e2->id;
 };
 effect::effect(duel* pd) {
-	scrtype = 3;
 	ref_handle = 0;
 	pduel = pd;
 	owner = 0;
@@ -229,7 +228,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 					ecode = EFFECT_TRAP_ACT_IN_SET_TURN;
 			}
 			if(ecode) {
-				int32 available = false;
+				bool available = false;
 				effect_set eset;
 				handler->filter_effect(ecode, &eset);
 				for(int32 i = 0; i < eset.size(); ++i) {
@@ -268,7 +267,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 			}
 			if(phandler->current.location == LOCATION_OVERLAY)
 				return FALSE;
-			if((type & EFFECT_TYPE_FIELD) && (phandler->current.controler != playerid) && !is_flag(EFFECT_FLAG_BOTH_SIDE))
+			if((type & EFFECT_TYPE_FIELD) && (phandler->current.controler != playerid) && !is_flag(EFFECT_FLAG_BOTH_SIDE | EFFECT_FLAG_EVENT_PLAYER))
 				return FALSE;
 			if(phandler->is_status(STATUS_FORBIDDEN))
 				return FALSE;

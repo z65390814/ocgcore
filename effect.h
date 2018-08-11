@@ -27,7 +27,6 @@ enum effect_flag2 : uint32;
 
 class effect {
 public:
-	int32 scrtype;
 	int32 ref_handle;
 	duel* pduel;
 	card* owner;
@@ -111,6 +110,7 @@ public:
 //status
 #define EFFECT_STATUS_AVAILABLE	0x0001
 //#define EFFECT_STATUS_ACTIVATED	0x0002
+#define EFFECT_STATUS_SPSELF	0x0004
 
 #define EFFECT_COUNT_CODE_OATH 0x10000000
 #define EFFECT_COUNT_CODE_DUEL 0x20000000
@@ -183,14 +183,14 @@ enum effect_flag : uint32 {
 	EFFECT_FLAG_OWNER_RELATE		= 0x1000000,
 	EFFECT_FLAG_AVAILABLE_BD		= 0x2000000,
 	EFFECT_FLAG_CLIENT_HINT			= 0x4000000,
-	EFFECT_FLAG_CHAIN_UNIQUE		= 0x8000000,
+//	EFFECT_FLAG_CHAIN_UNIQUE		= 0x8000000,
 //	EFFECT_FLAG_NAGA				= 0x10000000,
 //	EFFECT_FLAG_COF					= 0x20000000,
-	EFFECT_FLAG_CVAL_CHECK			= 0x40000000,
+//	EFFECT_FLAG_CVAL_CHECK			= 0x40000000,
 	EFFECT_FLAG_IMMEDIATELY_APPLY	= 0x80000000,
 };
 enum effect_flag2 : uint32 {
-	EFFECT_FLAG2_NAGA				= 0x0001,
+//	EFFECT_FLAG2_NAGA				= 0x0001,
 	EFFECT_FLAG2_COF				= 0x0002,
 };
 inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
@@ -344,6 +344,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_CANNOT_M2				186
 #define EFFECT_CANNOT_EP				187
 #define EFFECT_SKIP_TURN				188
+#define EFFECT_SKIP_EP					189
 #define EFFECT_DEFENSE_ATTACK			190
 #define EFFECT_MUST_ATTACK				191
 #define EFFECT_FIRST_ATTACK				192

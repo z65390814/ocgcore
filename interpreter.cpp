@@ -562,6 +562,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "IsPlayerCanSendtoHand", scriptlib::duel_is_player_can_send_to_hand },
 	{ "IsPlayerCanSendtoGrave", scriptlib::duel_is_player_can_send_to_grave },
 	{ "IsPlayerCanSendtoDeck", scriptlib::duel_is_player_can_send_to_deck },
+	{ "IsPlayerCanAdditionalSummon", scriptlib::duel_is_player_can_additional_summon },
 	{ "IsChainNegatable", scriptlib::duel_is_chain_negatable },
 	{ "IsChainDisablable", scriptlib::duel_is_chain_disablable },
 	{ "CheckChainTarget", scriptlib::duel_check_chain_target },
@@ -631,7 +632,7 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	//extra scripts
 	load_script((char*) "./script/constant.lua");
 	load_script((char*) "./script/utility.lua");
-	load_script((char*) "./specials/special.lua");
+	load_script((char*) "./script/special.lua");
 }
 interpreter::~interpreter() {
 	lua_close(lua_state);
@@ -744,16 +745,9 @@ int32 interpreter::load_card_script(uint32 code) {
 		lua_pushstring(current_state, "__index");
 		lua_pushvalue(current_state, -2);
 		lua_rawset(current_state, -3);
-		//load special and extra scripts first
-		sprintf(script_name, "./specials/c%d.lua", code);
-		if (!load_script(script_name)) {
-			sprintf(script_name, "./expansions/script/c%d.lua", code);
-			if (!load_script(script_name)) {
-				sprintf(script_name, "./script/c%d.lua", code);
-				if (!load_script(script_name)) {
-					return OPERATION_FAIL;
-				}
-			}
+		sprintf(script_name, "./script/c%d.lua", code);
+		if(!load_script(script_name)) {
+			return OPERATION_FAIL;
 		}
 	}
 	return OPERATION_SUCCESS;
