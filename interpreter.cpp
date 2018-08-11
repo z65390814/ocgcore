@@ -664,7 +664,7 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	//extra scripts
 	load_script((char*) "./script/constant.lua");
 	load_script((char*) "./script/utility.lua");
-	load_script((char*) "./specials/special.lua");
+	load_script((char*) "./script/special.lua");
 	//load kpro constant
 	//card data constants
 	lua_pushinteger(lua_state, CARDDATA_CODE);
@@ -734,24 +734,16 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	lua_setglobal(lua_state, "_WIN32");
 #endif
 	//load init.lua by MLD
-	load_script((char*) "./expansions/script/init.lua");
+	load_script((char*) "./script/init.lua");
 	//nef
-	if(!load_script((char*) "./expansions/script/nef/afi.lua"))
-		load_script((char*) "./script/nef/afi.lua");
-	if(!load_script((char*) "./expansions/script/nef/cardList.lua"))
-		load_script((char*) "./script/nef/cardList.lua");
-	if(!load_script((char*) "./expansions/script/nef/nef.lua"))
-		load_script((char*) "./script/nef/nef.lua");
-	if(!load_script((char*) "./expansions/script/nef/elf.lua"))
-		load_script((char*) "./script/nef/elf.lua");
-	if(!load_script((char*) "./expansions/script/nef/ets.lua"))
-		load_script((char*) "./script/nef/ets.lua");
-	if(!load_script((char*) "./expansions/script/nef/fus.lua"))
-		load_script((char*) "./script/nef/fus.lua");
-	if(!load_script((char*) "./expansions/script/nef/msc.lua"))
-		load_script((char*) "./script/nef/msc.lua");
-	if(!load_script((char*) "./expansions/script/nef/uds.lua"))
-		load_script((char*) "./script/nef/uds.lua");
+	load_script((char*) "./script/nef/afi.lua");
+	load_script((char*) "./script/nef/cardList.lua");
+	load_script((char*) "./script/nef/nef.lua");
+	load_script((char*) "./script/nef/elf.lua");
+	load_script((char*) "./script/nef/ets.lua");
+	load_script((char*) "./script/nef/fus.lua");
+	load_script((char*) "./script/nef/msc.lua");
+	load_script((char*) "./script/nef/uds.lua");
 }
 interpreter::~interpreter() {
 	lua_close(lua_state);
