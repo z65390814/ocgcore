@@ -393,6 +393,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "MoveTurnCount", scriptlib::duel_move_turn_count },
 	{ "GetCardsInZone", scriptlib::duel_get_cards_in_zone },
 	{ "XyzSummonByRose", scriptlib::duel_xyz_summon_by_rose },
+	{ "LoadScript", scriptlib::duel_load_script },
 
 	{ "EnableGlobalFlag", scriptlib::duel_enable_global_flag },
 	{ "GetLP", scriptlib::duel_get_lp },
