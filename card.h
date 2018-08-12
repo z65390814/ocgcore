@@ -131,6 +131,7 @@ public:
 		uint8 location;
 		uint8 sequence;
 	};
+	int32 scrtype;
 	int32 ref_handle;
 	duel* pduel;
 	card_data data;
