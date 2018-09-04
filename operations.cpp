@@ -3275,7 +3275,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 			pduel->write_buffer32(peffect->owner->data.code);
 			if(peffect->description) {
 				pduel->write_buffer8(MSG_HINT);
-				pduel->write_buffer8(12);
+				pduel->write_buffer8(HINT_SOUND);
 				pduel->write_buffer8(0);
 				pduel->write_buffer32(peffect->description);
 			}
@@ -3382,7 +3382,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 						pduel->write_buffer32(eset[i]->owner->data.code);
 						if(eset[i]->description) {
 							pduel->write_buffer8(MSG_HINT);
-							pduel->write_buffer8(12);
+							pduel->write_buffer8(HINT_SOUND);
 							pduel->write_buffer8(0);
 							pduel->write_buffer32(eset[i]->description);
 						}
@@ -3418,7 +3418,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 							pduel->write_buffer32(eset[i]->owner->data.code);
 							if(eset[i]->description) {
 								pduel->write_buffer8(MSG_HINT);
-								pduel->write_buffer8(12);
+								pduel->write_buffer8(HINT_SOUND);
 								pduel->write_buffer8(0);
 								pduel->write_buffer32(eset[i]->description);
 							}
@@ -3438,7 +3438,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 								pduel->write_buffer32(eset[i]->owner->data.code);
 								if(eset[i]->description) {
 									pduel->write_buffer8(MSG_HINT);
-									pduel->write_buffer8(12);
+									pduel->write_buffer8(HINT_SOUND);
 									pduel->write_buffer8(0);
 									pduel->write_buffer32(eset[i]->description);
 								}
