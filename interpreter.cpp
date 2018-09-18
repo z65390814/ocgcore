@@ -665,7 +665,6 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	//extra scripts
 	load_script("./script/constant.lua");
 	load_script("./script/utility.lua");
-	load_script("./script/special.lua");
 	//load kpro constant
 	//card data constants
 	lua_pushinteger(lua_state, CARDDATA_CODE);
