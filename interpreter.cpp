@@ -631,6 +631,10 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	set_duel_info(lua_state, pd);
 	//Initial
 	luaL_openlibs(lua_state);
+	lua_pushnil(lua_state);
+ 	lua_setglobal(lua_state, "io");
+ 	lua_pushnil(lua_state);
+ 	lua_setglobal(lua_state, "os");
 	luaL_getsubtable(lua_state, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
 	lua_pushnil(lua_state);
 	lua_setfield(lua_state, -2, "io");
