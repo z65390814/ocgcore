@@ -1814,6 +1814,9 @@ void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* mater
 	for(auto& pcard : player[playerid].list_grave)
 		if((pcard->data.type & TYPE_MONSTER) && pcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL) && pcard->is_removeable(playerid))
 			material->insert(pcard);
+	for(auto& pcard : player[playerid].list_extra)
+		if((pcard->data.type & TYPE_MONSTER) && pcard->is_affected_by_effect(EFFECT_MAP_OF_HEAVEN) && pcard->is_removeable(playerid))
+			material->insert(pcard);
 }
 void field::get_fusion_material(uint8 playerid, card_set* material) {
 	for(auto& pcard : player[playerid].list_mzone) {

@@ -3781,6 +3781,8 @@ int32 card::is_can_be_ritual_material(card* scard) {
 				return TRUE;
 		return FALSE;
 	}
+	if(current.location == LOCATION_EXTRA && is_affected_by_effect(EFFECT_MAP_OF_HEAVEN) && scard && scard->get_level() < 7)
+		return FALSE;
 	return TRUE;
 }
 int32 card::is_can_be_xyz_material(card* scard) {
