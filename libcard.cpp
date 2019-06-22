@@ -1811,7 +1811,7 @@ int32 scriptlib::card_register_flag_effect(lua_State *L) {
 	peffect->reset_flag = reset;
 	peffect->flag[0] = flag | EFFECT_FLAG_CANNOT_DISABLE;
 	peffect->reset_count = count;
-	peffect->label = lab;
+	peffect->label.push_back(lab);
 	peffect->description = desc;
 	pcard->add_effect(peffect);
 	interpreter::effect2value(L, peffect);
@@ -1843,7 +1843,8 @@ int32 scriptlib::card_set_flag_effect_label(lua_State *L) {
 	if(eit == pcard->single_effect.end())
 		lua_pushboolean(L, FALSE);
 	else {
-		eit->second->label = lab;
+		eit->second->label.clear();
+		eit->second->label.push_back(lab);
 		lua_pushboolean(L, TRUE);
 	}
 	return 1;
@@ -1855,10 +1856,8 @@ int32 scriptlib::card_get_flag_effect_label(lua_State *L) {
 	uint32 code = (lua_tointeger(L, 2) & 0xfffffff) | 0x10000000;
 	auto rg = pcard->single_effect.equal_range(code);
 	int32 count = 0;
-	for(; rg.first != rg.second; ++rg.first) {
-		lua_pushinteger(L, rg.first->second->label);
-		count++;
-	}
+	for(; rg.first != rg.second; ++rg.first, ++count)
+		lua_pushinteger(L, rg.first->second->label.size() ? rg.first->second->label[0] : 0);
 	if(!count) {
 		lua_pushnil(L);
 		return 1;
@@ -1986,7 +1985,7 @@ int32 scriptlib::card_replace_effect(lua_State * L) {
 	lua_pushinteger(L, pcard->replace_effect(code, reset, count));
 	return 1;
 }
-int32 scriptlib::card_enable_unsummonable(lua_State *L) {
+int32 scriptlib::card_enable_revive_limit(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
@@ -1994,31 +1993,10 @@ int32 scriptlib::card_enable_unsummonable(lua_State *L) {
 	if(!pcard->is_status(STATUS_COPYING_EFFECT)) {
 		effect* peffect = pduel->new_effect();
 		peffect->owner = pcard;
-		peffect->code = EFFECT_UNSUMMONABLE_CARD;
+		peffect->code = EFFECT_REVIVE_LIMIT;
 		peffect->type = EFFECT_TYPE_SINGLE;
 		peffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE | EFFECT_FLAG_UNCOPYABLE;
 		pcard->add_effect(peffect);
-	}
-	return 0;
-}
-int32 scriptlib::card_enable_revive_limit(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	duel* pduel = pcard->pduel;
-	if(!pcard->is_status(STATUS_COPYING_EFFECT)) {
-		effect* peffect1 = pduel->new_effect();
-		peffect1->owner = pcard;
-		peffect1->code = EFFECT_UNSUMMONABLE_CARD;
-		peffect1->type = EFFECT_TYPE_SINGLE;
-		peffect1->flag[0] = EFFECT_FLAG_CANNOT_DISABLE | EFFECT_FLAG_UNCOPYABLE;
-		pcard->add_effect(peffect1);
-		effect* peffect2 = pduel->new_effect();
-		peffect2->owner = pcard;
-		peffect2->code = EFFECT_REVIVE_LIMIT;
-		peffect2->type = EFFECT_TYPE_SINGLE;
-		peffect2->flag[0] = EFFECT_FLAG_CANNOT_DISABLE | EFFECT_FLAG_UNCOPYABLE;
-		pcard->add_effect(peffect2);
 	}
 	return 0;
 }
@@ -2134,9 +2112,17 @@ int32 scriptlib::card_is_synchro_summonable(lua_State *L) {
 			mg = *(group**) lua_touserdata(L, 3);
 		}
 	}
+	int32 minc = 0;
+	if(lua_gettop(L) >= 4)
+		minc = lua_tointeger(L, 4);
+	int32 maxc = 0;
+	if(lua_gettop(L) >= 5)
+		maxc = lua_tointeger(L, 5);
 	uint32 p = pcard->pduel->game_field->core.reason_player;
 	pcard->pduel->game_field->core.limit_tuner = tuner;
 	pcard->pduel->game_field->core.limit_syn = mg;
+	pcard->pduel->game_field->core.limit_syn_minc = minc;
+	pcard->pduel->game_field->core.limit_syn_maxc = maxc;
 	lua_pushboolean(L, pcard->is_special_summonable(p, SUMMON_TYPE_SYNCHRO));
 	return 1;
 }
