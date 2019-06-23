@@ -42,7 +42,7 @@ int32 scriptlib::duel_select_field(lua_State * L) {
 	} else {
 		flag = (flag | (0xffffffff-0xff1fff1f));
 	}
-	pduel->game_field->add_process(PROCESSOR_SELECT_DISFIELD_S, 0, 0, 0, playerid, flag, count);
+	pduel->game_field->add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, playerid, flag, count);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_get_master_rule(lua_State * L) {
@@ -128,7 +128,7 @@ int32 scriptlib::duel_exile(lua_State *L) {
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, PLAYER_NONE, 0, 0, POS_FACEUP);
 	else
 		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, PLAYER_NONE, 0, 0, POS_FACEUP);
-	pduel->game_field->core.subunits.back().type = PROCESSOR_SENDTO_S;
+	pduel->game_field->core.subunits.back().type = PROCESSOR_SENDTO;
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_disable_action_check(lua_State *L) {
