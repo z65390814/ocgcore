@@ -2765,7 +2765,7 @@ int32 field::process_battle_command(uint16 step) {
 	}
 	case 21: {
 		if(core.attacker->is_status(STATUS_ATTACK_CANCELED)) {
-			core.units.begin()->step = 32;
+			core.units.begin()->step = 33;
 			return FALSE;
 		}
 		if(!core.attack_target) {
@@ -2803,7 +2803,7 @@ int32 field::process_battle_command(uint16 step) {
 	}
 	case 23: {
 		if(core.attacker->is_status(STATUS_ATTACK_CANCELED)) {
-			core.units.begin()->step = 32;
+			core.units.begin()->step = 33;
 			return FALSE;
 		}
 		infos.phase = PHASE_DAMAGE_CAL;
@@ -2836,7 +2836,7 @@ int32 field::process_battle_command(uint16 step) {
 			reset_phase(PHASE_DAMAGE_CAL);
 			adjust_all();
 			infos.phase = PHASE_DAMAGE;
-			core.units.begin()->step = 32;
+			core.units.begin()->step = 33;
 			return FALSE;
 		}
 		return FALSE;
@@ -2943,8 +2943,6 @@ int32 field::process_battle_command(uint16 step) {
 		process_instant_event();
 		//this timing does not exist in Master Rule 3
 		core.damage_calculated = TRUE;
-		if(core.effect_damage_step)
-			return TRUE;
 		return FALSE;
 	}
 	case 27: {
@@ -3067,6 +3065,12 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLED, 0, 0, PLAYER_NONE, 0, 0);
 		process_single_event();
 		process_instant_event();
+		if(core.effect_damage_step)
+			return TRUE;
+		core.units.begin()->step = 32;
+	}
+	// fall through
+	case 32: {
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_EVENT);
 		pduel->write_buffer8(0);
@@ -3078,7 +3082,7 @@ int32 field::process_battle_command(uint16 step) {
 		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
 		return FALSE;
 	}
-	case 32: {
+	case 33: {
 		group* des = core.units.begin()->ptarget;
 		if(des) {
 			for(auto cit = des->container.begin(); cit != des->container.end();) {
@@ -3091,7 +3095,7 @@ int32 field::process_battle_command(uint16 step) {
 		adjust_all();
 		return FALSE;
 	}
-	case 33: {
+	case 34: {
 		core.units.begin()->ptarget = 0;
 		core.damage_calculated = TRUE;
 		core.selfdes_disabled = FALSE;
@@ -3247,7 +3251,7 @@ int32 field::process_damage_step(uint16 step, uint32 new_attack) {
 	}
 	case 2: {
 		core.effect_damage_step = 2;
-		add_process(PROCESSOR_BATTLE_COMMAND, 27, 0, 0, 0, 0);
+		add_process(PROCESSOR_BATTLE_COMMAND, 32, 0, 0, 0, 0);
 		return FALSE;
 	}
 	case 3: {
@@ -3365,6 +3369,30 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 					if(dp[1 - pd] && !core.attacker->is_affected_by_effect(EFFECT_AVOID_BATTLE_DAMAGE, core.attack_target)
 					        && !is_player_affected_by_effect(1 - pd, EFFECT_AVOID_BATTLE_DAMAGE))
 						core.battle_damage[1 - pd] = a - d;
+					bool double_damage = false;
+					//bool half_damage = false;
+					for(int32 i = 0; i < eset.size(); ++i) {
+						if(eset[i]->get_value() == DOUBLE_DAMAGE)
+							double_damage = true;
+						//if(eset[i]->get_value() == HALF_DAMAGE)
+						//	half_damage = true;
+					}
+					//if(double_damage && half_damage) {
+					//	double_damage = false;
+					//	half_damage = false;
+					//}
+					if(double_damage) {
+						if(dp[0])
+							core.battle_damage[0] *= 2;
+						if(dp[1])
+							core.battle_damage[1] *= 2;
+					}
+					//if(half_damage) {
+					//	if(dp[0])
+					//		core.battle_damage[0] /= 2;
+					//	if(dp[1])
+					//		core.battle_damage[1] /= 2;
+					//}
 					reason_card = core.attacker;
 				}
 				bd[1] = TRUE;
