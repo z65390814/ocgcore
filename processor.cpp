@@ -3065,8 +3065,10 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLED, 0, 0, PLAYER_NONE, 0, 0);
 		process_single_event();
 		process_instant_event();
-		if(core.effect_damage_step)
+		if(core.effect_damage_step) {
+			core.reserved.ptr1 = core.units.begin()->ptarget;
 			return TRUE;
+		}
 		core.units.begin()->step = 32;
 	}
 	// fall through
@@ -3251,7 +3253,7 @@ int32 field::process_damage_step(uint16 step, uint32 new_attack) {
 	}
 	case 2: {
 		core.effect_damage_step = 2;
-		add_process(PROCESSOR_BATTLE_COMMAND, 32, 0, 0, 0, 0);
+		add_process(PROCESSOR_BATTLE_COMMAND, 32, 0, (group*)core.units.begin()->ptr1, 0, 0);
 		return FALSE;
 	}
 	case 3: {
@@ -4384,8 +4386,8 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 				ptarget->release_relation(*cait);
 		}
 		if((pcard->data.type & TYPE_EQUIP) && (peffect->type & EFFECT_TYPE_ACTIVATE)
-		        && !pcard->equiping_target && pcard->is_has_relation(*cait))
-			destroy(pcard, 0, REASON_RULE, PLAYER_NONE);
+			&& !pcard->equiping_target && pcard->is_has_relation(*cait))
+			pcard->set_status(STATUS_LEAVE_CONFIRMED, TRUE);
 		if(core.duel_rule <= 2) {
 			if((pcard->data.type & TYPE_FIELD) && (peffect->type & EFFECT_TYPE_ACTIVATE)
 					&& !pcard->is_status(STATUS_LEAVE_CONFIRMED) && pcard->is_has_relation(*cait)) {
