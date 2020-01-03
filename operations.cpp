@@ -5237,14 +5237,14 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 			core.units.begin()->step = 6;
 			return FALSE;
 		}
-		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-		if(is_player_affected_by_effect(playerid, EFFECT_EXTRA_TOMAIN_KOISHI) || pcard->is_affected_by_effect(EFFECT_EXTRA_TOMAIN_KOISHI))
-			linked_zone = 0x7f;
-		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
-		if(linked_cards.find(tuner) != linked_cards.end())
+		card_set handover_zone_cards;
+		uint32 must_use_zone_flag = 0;
+		filter_must_use_mzone(playerid, playerid, LOCATION_REASON_TOFIELD, pcard, &must_use_zone_flag);
+		uint32 handover_zone = get_rule_zone_fromex(playerid, pcard) & ~must_use_zone_flag;
+		get_cards_in_zone(&handover_zone_cards, handover_zone, playerid, LOCATION_MZONE);
+		if(handover_zone_cards.find(tuner) != handover_zone_cards.end())
 			ct++;
-		if(smat && linked_cards.find(smat) != linked_cards.end())
+		if(smat && handover_zone_cards.find(smat) != handover_zone_cards.end())
 			ct++;
 		if(ct > 0) {
 			core.units.begin()->step = 6;
@@ -5252,7 +5252,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 		}
 		card_vector* select_cards = new card_vector;
 		for(auto& pm : core.select_cards) {
-			if(linked_cards.find(pm) != linked_cards.end())
+			if(handover_zone_cards.find(pm) != handover_zone_cards.end())
 				select_cards->push_back(pm);
 		}
 		if(select_cards->size() == core.select_cards.size()) {
@@ -5466,12 +5466,12 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		if(!(core.global_flag & GLOBALFLAG_TUNE_MAGICIAN))
 			return FALSE;
 		int32 ct = get_spsummonable_count(scard, playerid);
-		card_set linked_cards;
+		card_set handover_zone_cards;
 		if(ct <= 0) {
-			uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-			if(is_player_affected_by_effect(playerid, EFFECT_EXTRA_TOMAIN_KOISHI) || scard->is_affected_by_effect(EFFECT_EXTRA_TOMAIN_KOISHI))
-				linked_zone = 0x7f;
-			get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
+			uint32 must_use_zone_flag = 0;
+			filter_must_use_mzone(playerid, playerid, LOCATION_REASON_TOFIELD, scard, &must_use_zone_flag);
+			uint32 handover_zone = get_rule_zone_fromex(playerid, scard) & ~must_use_zone_flag;
+			get_cards_in_zone(&handover_zone_cards, handover_zone, playerid, LOCATION_MZONE);
 		}
 		for(auto& pcard : core.operated_set) {
 			effect* peffect = pcard->is_affected_by_effect(EFFECT_TUNE_MAGICIAN_X);
@@ -5523,7 +5523,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 				int32 ft = ct;
 				for(auto cit = mat.begin(); cit != mat.end(); ++cit) {
 					card* pcard = cit->second;
-					if(linked_cards.find(pcard) != linked_cards.end())
+					if(handover_zone_cards.find(pcard) != handover_zone_cards.end())
 						ft++;
 				}
 				if(ft <= 0)
@@ -5554,13 +5554,13 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 			core.units.begin()->step = 4;
 			return FALSE;
 		}
-		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-		if(is_player_affected_by_effect(playerid, EFFECT_EXTRA_TOMAIN_KOISHI) || scard->is_affected_by_effect(EFFECT_EXTRA_TOMAIN_KOISHI))
-			linked_zone = 0x7f;
-		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
+		card_set handover_zone_cards;
+		uint32 must_use_zone_flag = 0;
+		filter_must_use_mzone(playerid, playerid, LOCATION_REASON_TOFIELD, scard, &must_use_zone_flag);
+		uint32 handover_zone = get_rule_zone_fromex(playerid, scard) & ~must_use_zone_flag;
+		get_cards_in_zone(&handover_zone_cards, handover_zone, playerid, LOCATION_MZONE);
 		int32 ft = ct + std::count_if(core.operated_set.begin(), core.operated_set.end(),
-			[=](card* pcard) { return linked_cards.find(pcard) != linked_cards.end(); });
+			[=](card* pcard) { return handover_zone_cards.find(pcard) != handover_zone_cards.end(); });
 		if(ft > 0) {
 			returns.ivalue[0] = 1;
 			core.units.begin()->step = 4;
@@ -5570,7 +5570,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter) {
 			card* pcard = iter->second;
-			if(linked_cards.find(pcard) != linked_cards.end())
+			if(handover_zone_cards.find(pcard) != handover_zone_cards.end())
 				core.select_cards.push_back(pcard);
 			else
 				mmax++;
@@ -5739,19 +5739,19 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		int32 ct = get_spsummonable_count(scard, playerid);
 		if(ct > 0)
 			return FALSE;
-		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
-		if(is_player_affected_by_effect(playerid, EFFECT_EXTRA_TOMAIN_KOISHI) || scard->is_affected_by_effect(EFFECT_EXTRA_TOMAIN_KOISHI))
-			linked_zone = 0x7f;
-		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
+		card_set handover_zone_cards;
+		uint32 must_use_zone_flag = 0;
+		filter_must_use_mzone(playerid, playerid, LOCATION_REASON_TOFIELD, scard, &must_use_zone_flag);
+		uint32 handover_zone = get_rule_zone_fromex(playerid, scard) & ~must_use_zone_flag;
+		get_cards_in_zone(&handover_zone_cards, handover_zone, playerid, LOCATION_MZONE);
 		int32 ft = ct + std::count_if(core.operated_set.begin(), core.operated_set.end(),
-			[=](card* pcard) { return linked_cards.find(pcard) != linked_cards.end(); });
+			[=](card* pcard) { return handover_zone_cards.find(pcard) != handover_zone_cards.end(); });
 		if(ft > 0)
 			return FALSE;
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter) {
 			card* pcard = iter->second;
-			if(linked_cards.find(pcard) != linked_cards.end())
+			if(handover_zone_cards.find(pcard) != handover_zone_cards.end())
 				core.select_cards.push_back(pcard);
 		}
 		pduel->write_buffer8(MSG_HINT);
