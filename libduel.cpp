@@ -43,7 +43,26 @@ int32 scriptlib::duel_select_field(lua_State * L) {
 		flag = (flag | (0xffffffff-0xff1fff1f));
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, playerid, flag, count);
-	return lua_yield(L, 0);
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
+		duel* pduel = (duel*)ctx;
+		int32 playerid = lua_tointeger(L, 1);
+		uint32 count = lua_tointeger(L, 2);
+		int32 dfflag = 0;
+		uint8 pa = 0;
+		for(uint32 i = 0; i < count; ++i) {
+			uint8 p = pduel->game_field->returns.bvalue[pa];
+			uint8 l = pduel->game_field->returns.bvalue[pa + 1];
+			uint8 s = pduel->game_field->returns.bvalue[pa + 2];
+			dfflag |= 0x1u << (s + (p == playerid ? 0 : 16) + (l == LOCATION_MZONE ? 0 : 8));
+			pa += 3;
+		}
+		if(dfflag & (0x1 << 5))
+			dfflag |= 0x1 << (16 + 6);
+		if(dfflag & (0x1 << 6))
+			dfflag |= 0x1 << (16 + 5);
+		lua_pushinteger(L, dfflag);
+		return 1;
+	});
 }
 int32 scriptlib::duel_get_master_rule(lua_State * L) {
 	duel* pduel = interpreter::get_duel_info(L);
