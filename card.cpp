@@ -622,7 +622,6 @@ int32 card::get_attack() {
 	filter_effect(EFFECT_UPDATE_ATTACK, &eset, FALSE);
 	filter_effect(EFFECT_SET_ATTACK, &eset, FALSE);
 	filter_effect(EFFECT_SET_ATTACK_FINAL, &eset, FALSE);
-	filter_effect(EFFECT_SWAP_ATTACK_FINAL, &eset, FALSE);
 	filter_effect(EFFECT_SET_BASE_ATTACK, &eset, FALSE);
 	if(!(data.type & TYPE_LINK)) {
 		filter_effect(EFFECT_SWAP_AD, &eset, FALSE);
@@ -685,11 +684,6 @@ int32 card::get_attack() {
 			if(batk < 0)
 				batk = 0;
 			atk = -1;
-			break;
-		case EFFECT_SWAP_ATTACK_FINAL:
-			atk = eset[i]->get_value(this);
-			up_atk = 0;
-			upc_atk = 0;
 			break;
 		case EFFECT_SET_BASE_DEFENSE:
 			bdef = eset[i]->get_value(this);
@@ -822,7 +816,6 @@ int32 card::get_defense() {
 	filter_effect(EFFECT_UPDATE_DEFENSE, &eset, FALSE);
 	filter_effect(EFFECT_SET_DEFENSE, &eset, FALSE);
 	filter_effect(EFFECT_SET_DEFENSE_FINAL, &eset, FALSE);
-	filter_effect(EFFECT_SWAP_DEFENSE_FINAL, &eset, FALSE);
 	filter_effect(EFFECT_SWAP_BASE_AD, &eset, FALSE);
 	filter_effect(EFFECT_SET_BASE_ATTACK, &eset, FALSE);
 	filter_effect(EFFECT_SET_BASE_DEFENSE, &eset, FALSE);
@@ -882,11 +875,6 @@ int32 card::get_defense() {
 			if(bdef < 0)
 				bdef = 0;
 			def = -1;
-			break;
-		case EFFECT_SWAP_DEFENSE_FINAL:
-			def = eset[i]->get_value(this);
-			up_def = 0;
-			upc_def = 0;
 			break;
 		case EFFECT_SET_BASE_ATTACK:
 			batk = eset[i]->get_value(this);
@@ -2022,7 +2010,8 @@ void card::reset(uint32 id, uint32 reset_type) {
 			}
 		}
 		if(id & RESET_TURN_SET) {
-			if(effect* peffect = check_control_effect()) {
+			effect* peffect = std::get<effect*>(refresh_control_status());
+			if(peffect && (!(peffect->type & EFFECT_TYPE_SINGLE) || peffect->condition)) {
 				effect* new_effect = pduel->new_effect();
 				new_effect->id = peffect->id;
 				new_effect->owner = this;
@@ -2075,8 +2064,9 @@ void card::refresh_disable_status() {
 	if(pre_dis != cur_dis)
 		filter_immune_effect();
 }
-uint8 card::refresh_control_status() {
+std::tuple<uint8, effect*> card::refresh_control_status() {
 	uint8 final = owner;
+	effect* ceffect = nullptr;
 	uint32 last_id = 0;
 	if(pduel->game_field->core.remove_brainwashing && is_affected_by_effect(EFFECT_REMOVE_BRAINWASHING))
 		last_id = pduel->game_field->core.last_control_changed_id;
@@ -2085,18 +2075,11 @@ uint8 card::refresh_control_status() {
 	if(eset.size()) {
 		effect* peffect = eset.get_last();
 		if(peffect->id >= last_id) {
-			card* pcard = peffect->get_handler();
-			uint8 val = (uint8)peffect->get_value(this);
-			if(val != current.controler)
-				pduel->game_field->core.readjust_map[pcard]++;
-			if(pduel->game_field->core.readjust_map[pcard] > 5) {
-				pduel->game_field->send_to(pcard, 0, REASON_RULE, peffect->get_handler_player(), PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
-				return final;
-			}
-			final = val;
+			final = (uint8)peffect->get_value(this);
+			ceffect = peffect;
 		}
 	}
-	return final;
+	return { final, ceffect };
 }
 void card::count_turn(uint16 ct) {
 	turn_counter = ct;
@@ -2840,54 +2823,6 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 			return peffect;
 	}
 	return 0;
-}
-effect* card::check_control_effect() {
-	effect* ret_effect = 0;
-	for (auto& pcard : equiping_cards) {
-		auto rg = pcard->equip_effect.equal_range(EFFECT_SET_CONTROL);
-		for (; rg.first != rg.second; ++rg.first) {
-			effect* peffect = rg.first->second;
-			if(!ret_effect || peffect->id > ret_effect->id)
-				ret_effect = peffect;
-		}
-	}
-	for (auto& pcard : effect_target_owner) {
-		auto rg = pcard->target_effect.equal_range(EFFECT_SET_CONTROL);
-		for (; rg.first != rg.second; ++rg.first) {
-			effect* peffect = rg.first->second;
-			if(!ret_effect || peffect->is_target(pcard) && peffect->id > ret_effect->id)
-				ret_effect = peffect;
-		}
-	}
-	for (auto& pcard : xyz_materials) {
-		auto rg = pcard->xmaterial_effect.equal_range(EFFECT_SET_CONTROL);
-		for (; rg.first != rg.second; ++rg.first) {
-			effect* peffect = rg.first->second;
-			if (peffect->type & EFFECT_TYPE_FIELD)
-				continue;
-			if(!ret_effect || peffect->id > ret_effect->id)
-				ret_effect = peffect;
-		}
-	}
-	auto rg = single_effect.equal_range(EFFECT_SET_CONTROL);
-	for (; rg.first != rg.second; ++rg.first) {
-		effect* peffect = rg.first->second;
-		if(!peffect->condition)
-			continue;
-		if(!ret_effect || peffect->id > ret_effect->id)
-			ret_effect = peffect;
-	}
-	/*
-	rg = pduel->game_field->effects.aura_effect.equal_range(EFFECT_SET_CONTROL);
-	for(; rg.first != rg.second; ++rg.first) {
-		effect* peffect = rg.first->second;
-		if(peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) || !peffect->is_target(this))
-			continue;
-		if(!ret_effect || peffect->id > ret_effect->id)
-			ret_effect = peffect;
-	}
-	*/
-	return ret_effect;
 }
 int32 card::fusion_check(group* fusion_m, card* cg, uint32 chkf, uint8 not_material) {
 	group* matgroup = 0;
