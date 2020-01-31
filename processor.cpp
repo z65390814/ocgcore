@@ -1274,13 +1274,13 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 	case 0: {
 		core.select_chains.clear();
 		core.point_event.splice(core.point_event.end(), core.instant_event);
-		core.full_event.splice(core.full_event.end(), core.delayed_activate_event);
 		if(skip_trigger) {
 			core.units.begin()->step = 7;
 			return FALSE;
 		}
 		core.new_fchain_s.splice(core.new_fchain_s.begin(), core.new_fchain);
 		core.new_ochain_s.splice(core.new_ochain_s.begin(), core.new_ochain);
+		core.full_event.splice(core.full_event.end(), core.delayed_activate_event);
 		core.delayed_quick.clear();
 		core.delayed_quick_break.swap(core.delayed_quick);
 		core.current_player = infos.turn_player;
@@ -1640,9 +1640,9 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 						newchain.set_triggering_state(phandler);
 						newchain.triggering_player = priority;
 						core.select_chains.push_back(newchain);
-						core.delayed_quick_tmp.erase(std::make_pair(peffect, ev));
-						core.delayed_quick_break.erase(std::make_pair(peffect, ev));
 					}
+					core.delayed_quick_tmp.erase(std::make_pair(peffect, ev));
+					core.delayed_quick_break.erase(std::make_pair(peffect, ev));
 				}
 			}
 		}
@@ -4843,18 +4843,30 @@ int32 field::adjust_step(uint16 step) {
 		//control
 		core.control_adjust_set[0].clear();
 		core.control_adjust_set[1].clear();
+		card_set reason_cards;
 		for(uint8 p = 0; p < 2; ++p) {
 			for(auto& pcard : player[p].list_mzone) {
 				if(!pcard) continue;
 				uint8 cur = pcard->current.controler;
-				uint8 ref = pcard->refresh_control_status();
-				if(cur != ref && pcard->is_capable_change_control())
+				auto res = pcard->refresh_control_status();
+				uint8 ref = std::get<uint8>(res);
+				effect* peffect = std::get<effect*>(res);
+				if(cur != ref && pcard->is_capable_change_control()) {
 					core.control_adjust_set[p].insert(pcard);
+					if(peffect && (!(peffect->type & EFFECT_TYPE_SINGLE) || peffect->condition))
+						reason_cards.insert(peffect->get_handler());
+				}
 			}
 		}
 		if(core.control_adjust_set[0].size() || core.control_adjust_set[1].size()) {
 			core.re_adjust = TRUE;
-			add_process(PROCESSOR_CONTROL_ADJUST, 0, 0, 0, 0, 0);
+			get_control(&core.control_adjust_set[1 - infos.turn_player], 0, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
+			get_control(&core.control_adjust_set[infos.turn_player], 0, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
+			for(auto& rcard : reason_cards) {
+				core.readjust_map[rcard]++;
+				if(core.readjust_map[rcard] > 3)
+					destroy(rcard, 0, REASON_RULE, PLAYER_NONE);
+			}
 		}
 		core.last_control_changed_id = infos.field_id;
 		return FALSE;
@@ -4888,7 +4900,8 @@ int32 field::adjust_step(uint16 step) {
 			core.remove_brainwashing = res;
 			if(core.control_adjust_set[0].size() || core.control_adjust_set[1].size()) {
 				core.re_adjust = TRUE;
-				add_process(PROCESSOR_CONTROL_ADJUST, 0, 0, 0, 0, 0);
+				get_control(&core.control_adjust_set[1 - infos.turn_player], 0, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
+				get_control(&core.control_adjust_set[infos.turn_player], 0, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
 			}
 		}
 		core.units.begin()->step = 7;
