@@ -21,7 +21,6 @@
 #include <vector>
 #include <cstdio>
 #include <cstring>
-#include <cmath>
 
 class card;
 class effect;
