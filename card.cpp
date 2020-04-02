@@ -91,7 +91,6 @@ card::card(duel* pd) {
 	std::memset(&temp, 0xff, sizeof(card_state));
 	unique_pos[0] = unique_pos[1] = 0;
 	spsummon_counter[0] = spsummon_counter[1] = 0;
-	spsummon_counter_rst[0] = spsummon_counter_rst[1] = 0;
 	unique_code = 0;
 	unique_fieldid = 0;
 	assume_type = 0;
@@ -1505,7 +1504,6 @@ void card::apply_field_effect() {
 	if(unique_code && (current.location & unique_location))
 		pduel->game_field->add_unique_card(this);
 	spsummon_counter[0] = spsummon_counter[1] = 0;
-	spsummon_counter_rst[0] = spsummon_counter_rst[1] = 0;
 }
 void card::cancel_field_effect() {
 	if (current.controler == PLAYER_NONE)
@@ -3593,7 +3591,8 @@ int32 card::is_control_can_be_changed(int32 ignore_mzone, uint32 zone) {
 		return FALSE;
 	if(!ignore_mzone && pduel->game_field->get_useable_count(this, 1 - current.controler, LOCATION_MZONE, current.controler, LOCATION_REASON_CONTROL, zone) <= 0)
 		return FALSE;
-	if((get_type() & TYPE_TRAPMONSTER) && pduel->game_field->get_useable_count(this, 1 - current.controler, LOCATION_SZONE, current.controler, LOCATION_REASON_CONTROL) <= 0)
+	if(pduel->game_field->core.duel_rule <= 4 && (get_type() & TYPE_TRAPMONSTER)
+		&& pduel->game_field->get_useable_count(this, 1 - current.controler, LOCATION_SZONE, current.controler, LOCATION_REASON_CONTROL) <= 0)
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_CHANGE_CONTROL))
 		return FALSE;
