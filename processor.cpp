@@ -749,6 +749,7 @@ int32 field::execute_cost(uint16 step, effect * triggering_effect, uint8 trigger
 			core.shuffle_hand_check[0] = FALSE;
 			core.shuffle_hand_check[1] = FALSE;
 		}
+		core.units.begin()->arg2 = core.shuffle_check_disabled;
 		core.shuffle_check_disabled = FALSE;
 		core.check_level++;
 	}
@@ -772,7 +773,7 @@ int32 field::execute_cost(uint16 step, effect * triggering_effect, uint8 trigger
 			if(core.shuffle_deck_check[1])
 				shuffle(1, LOCATION_DECK);
 		}
-		core.shuffle_check_disabled = FALSE;
+		core.shuffle_check_disabled = core.units.begin()->arg2;
 		return TRUE;
 	}
 	return FALSE;
@@ -800,6 +801,7 @@ int32 field::execute_operation(uint16 step, effect * triggering_effect, uint8 tr
 			core.shuffle_hand_check[0] = FALSE;
 			core.shuffle_hand_check[1] = FALSE;
 		}
+		core.units.begin()->arg2 = core.shuffle_check_disabled;
 		core.shuffle_check_disabled = FALSE;
 		core.check_level++;
 	}
@@ -827,7 +829,7 @@ int32 field::execute_operation(uint16 step, effect * triggering_effect, uint8 tr
 			//cost[0].amount = 0;
 			//cost[1].amount = 0;
 		}
-		core.shuffle_check_disabled = FALSE;
+		core.shuffle_check_disabled = core.units.begin()->arg2;
 		return TRUE;
 	}
 	return FALSE;
@@ -856,6 +858,7 @@ int32 field::execute_target(uint16 step, effect * triggering_effect, uint8 trigg
 			core.shuffle_hand_check[0] = FALSE;
 			core.shuffle_hand_check[1] = FALSE;
 		}
+		core.units.begin()->arg2 = core.shuffle_check_disabled;
 		core.shuffle_check_disabled = FALSE;
 		core.check_level++;
 	}
@@ -879,7 +882,7 @@ int32 field::execute_target(uint16 step, effect * triggering_effect, uint8 trigg
 			if(core.shuffle_deck_check[1])
 				shuffle(1, LOCATION_DECK);
 		}
-		core.shuffle_check_disabled = FALSE;
+		core.shuffle_check_disabled = core.units.begin()->arg2;
 		return TRUE;
 	}
 	return FALSE;
@@ -3655,7 +3658,6 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			core.normalsummon_state_count[p] = 0;
 			core.flipsummon_state_count[p] = 0;
 			core.spsummon_state_count[p] = 0;
-			core.spsummon_state_count_rst[p] = 0;
 			core.attack_state_count[p] = 0;
 			core.battle_phase_count[p] = 0;
 			core.battled_count[p] = 0;
@@ -3663,7 +3665,6 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			core.extra_summon[p] = 0;
 			core.spsummon_once_map[p].clear();
 		}
-		core.spsummon_rst = false;
 		for(auto& peffect : effects.rechargeable)
 			if(!peffect->is_flag(EFFECT_FLAG_NO_TURN_RESET))
 				peffect->recharge();
@@ -3684,7 +3685,6 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 				card* pcard = peffect->get_handler();
 				if(!peffect->is_flag(EFFECT_FLAG_NO_TURN_RESET)) {
 					pcard->spsummon_counter[0] = pcard->spsummon_counter[1] = 0;
-					pcard->spsummon_counter_rst[0] = pcard->spsummon_counter_rst[1] = 0;
 				}
 			}
 		}
@@ -4173,12 +4173,6 @@ int32 field::add_chain(uint16 step) {
 				&& !peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
 			clit.flag |= CHAIN_CONTINUOUS_CARD;
 		core.phase_action = TRUE;
-		if(clit.opinfos.count(0x200) && clit.opinfos[0x200].op_count) {
-			core.spsummon_rst = true;
-			set_spsummon_counter(clit.triggering_player, true, true);
-			if(clit.opinfos[0x200].op_player == PLAYER_ALL)
-				set_spsummon_counter(1 - clit.triggering_player, true, true);
-						}
 		pduel->write_buffer8(MSG_CHAINED);
 		pduel->write_buffer8(clit.chain_count);
 		raise_event(phandler, EVENT_CHAINING, peffect, 0, clit.triggering_player, clit.triggering_player, clit.chain_count);
@@ -4296,11 +4290,6 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	auto cait = core.current_chain.rbegin();
 	switch(step) {
 	case 0: {
-		if(core.spsummon_rst) {
-			set_spsummon_counter(0, false, true);
-			set_spsummon_counter(1, false, true);
-			core.spsummon_rst = false;
-		}
 		pduel->write_buffer8(MSG_CHAIN_SOLVING);
 		pduel->write_buffer8(cait->chain_count);
 		add_to_disable_check_list(cait->triggering_effect->get_handler());
@@ -4334,8 +4323,6 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		return FALSE;
 	}
 	case 2: {
-		core.spsummon_state_count_tmp[0] = core.spsummon_state_count[0];
-		core.spsummon_state_count_tmp[1] = core.spsummon_state_count[1];
 		effect* peffect = cait->triggering_effect;
 		card* pcard = peffect->get_handler();
 		if((peffect->type & EFFECT_TYPE_ACTIVATE) && pcard->is_has_relation(*cait)) {
@@ -4386,16 +4373,6 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		return FALSE;
 	}
 	case 4: {
-		if(core.units.begin()->arg4 == 0) {
-			if(cait->opinfos.count(0x200) && cait->opinfos[0x200].op_count) {
-				if(core.spsummon_state_count_tmp[cait->triggering_player] == core.spsummon_state_count[cait->triggering_player])
-					set_spsummon_counter(cait->triggering_player);
-				if(cait->opinfos[0x200].op_player == PLAYER_ALL && core.spsummon_state_count_tmp[1 - cait->triggering_player] == core.spsummon_state_count[1 - cait->triggering_player])
-					set_spsummon_counter(1 - cait->triggering_player);
-			}
-		}
-		core.spsummon_state_count_tmp[0] = 0;
-		core.spsummon_state_count_tmp[1] = 0;
 		core.chain_solving = FALSE;
 		if(core.delayed_continuous_tp.size()) {
 			core.conti_player = infos.turn_player;
