@@ -1113,7 +1113,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 			for(auto eit = pr.first; eit != pr.second;) {
 				effect* peffect = eit->second;
 				++eit;
-				if((peffect->get_handler_player() != check_player && !peffect->is_flag(EFFECT_FLAG2_CONTINUOUS_OPPOTURN)) || !peffect->is_activateable(check_player, nil_event))
+				if(peffect->get_handler_player() != check_player || !peffect->is_activateable(check_player, nil_event))
 					continue;
 				peffect->id = infos.field_id++;
 				newchain.triggering_effect = peffect;
@@ -1537,7 +1537,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			effect* peffect = eit->second;
 			++eit;
 			newchain.triggering_effect = peffect;
-			if((peffect->is_flag(EFFECT_FLAG2_CONTINUOUS_OPPOTURN) ||peffect->get_handler_player() == check_player) && peffect->is_activateable(check_player, nil_event)) {
+			if(peffect->get_handler_player() == check_player && peffect->is_activateable(check_player, nil_event)) {
 				core.select_chains.push_back(newchain);
 				core.spe_effect[check_player]++;
 			}
