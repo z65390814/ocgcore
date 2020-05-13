@@ -1505,7 +1505,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			effect* peffect = eit->second;
 			++eit;
 			newchain.triggering_effect = peffect;
-			if((peffect->is_flag(EFFECT_FLAG2_CONTINUOUS_OPPOTURN) || peffect->get_handler_player() == infos.turn_player) && peffect->is_activateable(check_player, nil_event)) {
+			if(peffect->get_handler_player() == check_player && peffect->is_activateable(check_player, nil_event)) {
 				core.select_chains.push_back(newchain);
 				core.spe_effect[check_player]++;
 			}
@@ -2096,7 +2096,7 @@ int32 field::process_idle_command(uint16 step) {
 			effect* peffect = eit->second;
 			++eit;
 			newchain.triggering_effect = peffect;
-			if((peffect->is_flag(EFFECT_FLAG2_CONTINUOUS_OPPOTURN) || peffect->get_handler_player() == infos.turn_player) && peffect->is_activateable(infos.turn_player, nil_event))
+			if(peffect->get_handler_player() == infos.turn_player && peffect->is_activateable(infos.turn_player, nil_event))
 				core.select_chains.push_back(newchain);
 		}
 		for(auto eit = effects.ignition_effect.begin(); eit != effects.ignition_effect.end();) {
@@ -2407,7 +2407,7 @@ int32 field::process_battle_command(uint16 step) {
 			effect* peffect = eit->second;
 			++eit;
 			newchain.triggering_effect = peffect;
-			if((peffect->is_flag(EFFECT_FLAG2_CONTINUOUS_OPPOTURN) || peffect->get_handler_player() == infos.turn_player) && peffect->is_activateable(infos.turn_player, nil_event))
+			if(peffect->get_handler_player() == infos.turn_player && peffect->is_activateable(infos.turn_player, nil_event))
 				core.select_chains.push_back(newchain);
 		}
 		core.attackable_cards.clear();
