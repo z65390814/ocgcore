@@ -1569,10 +1569,12 @@ int32 scriptlib::card_get_tuner_limit(lua_State *L) {
 			lua_pushnil(L);
 		uint16 min = 0;
 		uint16 max = 99;
-		if(peffect->s_range && peffect->s_range > min)
-			min = peffect->s_range;
-		if(peffect->o_range && peffect->o_range < max)
-			max = peffect->o_range;
+		if(peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM)) {
+			if(peffect->s_range && peffect->s_range > min)
+				min = peffect->s_range;
+			if(peffect->o_range && peffect->o_range < max)
+				max = peffect->o_range;
+		}
 		lua_pushinteger(L, min);
 		lua_pushinteger(L, max);
 		return 5;
@@ -1594,10 +1596,12 @@ int32 scriptlib::card_get_hand_synchro(lua_State *L) {
 			lua_pushnil(L);
 		uint16 min = 0;
 		uint16 max = 99;
-		if(peffect->s_range && peffect->s_range > min)
-			min = peffect->s_range;
-		if(peffect->o_range && peffect->o_range < max)
-			max = peffect->o_range;
+		if(peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM)) {
+			if(peffect->s_range && peffect->s_range > min)
+				min = peffect->s_range;
+			if(peffect->o_range && peffect->o_range < max)
+				max = peffect->o_range;
+		}
 		lua_pushinteger(L, min);
 		lua_pushinteger(L, max);
 		return 4;
@@ -1611,10 +1615,12 @@ int32 scriptlib::card_get_hand_synchro(lua_State *L) {
 			lua_pushnil(L);
 		uint16 min = 0;
 		uint16 max = 99;
-		if(peffect->s_range && peffect->s_range > min)
-			min = peffect->s_range;
-		if(peffect->o_range && peffect->o_range < max)
-			max = peffect->o_range;
+		if(peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM)) {
+			if(peffect->s_range && peffect->s_range > min)
+				min = peffect->s_range;
+			if(peffect->o_range && peffect->o_range < max)
+				max = peffect->o_range;
+		}
 		lua_pushinteger(L, min);
 		lua_pushinteger(L, max);
 		return 4;
@@ -2031,7 +2037,12 @@ int32 scriptlib::card_is_synchro_summonable(lua_State *L) {
 	pcard->pduel->game_field->core.limit_syn = mg;
 	pcard->pduel->game_field->core.limit_syn_minc = minc;
 	pcard->pduel->game_field->core.limit_syn_maxc = maxc;
-	lua_pushboolean(L, pcard->is_special_summonable(p, SUMMON_TYPE_SYNCHRO));
+	int32 res = pcard->is_special_summonable(p, SUMMON_TYPE_SYNCHRO);
+	pcard->pduel->game_field->core.limit_tuner = 0;
+	pcard->pduel->game_field->core.limit_syn = 0;
+	pcard->pduel->game_field->core.limit_syn_minc = 0;
+	pcard->pduel->game_field->core.limit_syn_maxc = 0;
+	lua_pushboolean(L, res);
 	return 1;
 }
 int32 scriptlib::card_is_xyz_summonable(lua_State *L) {
@@ -2057,7 +2068,11 @@ int32 scriptlib::card_is_xyz_summonable(lua_State *L) {
 	pcard->pduel->game_field->core.limit_xyz = materials;
 	pcard->pduel->game_field->core.limit_xyz_minc = minc;
 	pcard->pduel->game_field->core.limit_xyz_maxc = maxc;
-	lua_pushboolean(L, pcard->is_special_summonable(p, SUMMON_TYPE_XYZ));
+	int32 res = pcard->is_special_summonable(p, SUMMON_TYPE_XYZ);
+	pcard->pduel->game_field->core.limit_xyz = 0;
+	pcard->pduel->game_field->core.limit_xyz_minc = 0;
+	pcard->pduel->game_field->core.limit_xyz_maxc = 0;
+	lua_pushboolean(L, res);
 	return 1;
 }
 int32 scriptlib::card_is_link_summonable(lua_State *L) {
@@ -2091,7 +2106,12 @@ int32 scriptlib::card_is_link_summonable(lua_State *L) {
 	pcard->pduel->game_field->core.limit_link_card = lcard;
 	pcard->pduel->game_field->core.limit_link_minc = minc;
 	pcard->pduel->game_field->core.limit_link_maxc = maxc;
-	lua_pushboolean(L, pcard->is_special_summonable(p, SUMMON_TYPE_LINK));
+	int32 res = pcard->is_special_summonable(p, SUMMON_TYPE_LINK);
+	pcard->pduel->game_field->core.limit_link = 0;
+	pcard->pduel->game_field->core.limit_link_card = 0;
+	pcard->pduel->game_field->core.limit_link_minc = 0;
+	pcard->pduel->game_field->core.limit_link_maxc = 0;
+	lua_pushboolean(L, res);
 	return 1;
 }
 int32 scriptlib::card_is_can_be_summoned(lua_State *L) {

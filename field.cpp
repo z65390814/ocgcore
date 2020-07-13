@@ -1319,7 +1319,8 @@ void field::filter_field_effect(uint32 code, effect_set* eset, uint8 sort) {
 		eset->sort();
 }
 void field::filter_affected_cards(effect* peffect, card_set* cset) {
-	if((peffect->type & EFFECT_TYPE_ACTIONS) || !(peffect->type & EFFECT_TYPE_FIELD) || peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET))
+	if((peffect->type & EFFECT_TYPE_ACTIONS) || !(peffect->type & EFFECT_TYPE_FIELD)
+		|| peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET | EFFECT_FLAG_SPSUM_PARAM))
 		return;
 	uint8 self = peffect->get_handler_player();
 	if(self == PLAYER_NONE)
@@ -1352,7 +1353,7 @@ void field::filter_affected_cards(effect* peffect, card_set* cset) {
 	}
 }
 void field::filter_inrange_cards(effect* peffect, card_set* cset) {
-	if(peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET))
+	if(peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET | EFFECT_FLAG_SPSUM_PARAM))
 		return;
 	uint8 self = peffect->get_handler_player();
 	if(self == PLAYER_NONE)
@@ -1933,13 +1934,13 @@ void field::adjust_disable_check_list() {
 			effects.disable_check_list.pop_front();
 			effects.disable_check_set.erase(checking);
 			checked.insert(checking);
-			if(checking->is_status(STATUS_TO_ENABLE | STATUS_TO_DISABLE))
+			if(checking->is_status(STATUS_TO_ENABLE | STATUS_TO_DISABLE)) // prevent loop
 				continue;
 			int32 pre_disable = checking->get_status(STATUS_DISABLED | STATUS_FORBIDDEN);
 			checking->refresh_disable_status();
 			int32 new_disable = checking->get_status(STATUS_DISABLED | STATUS_FORBIDDEN);
 			if(pre_disable != new_disable && checking->is_status(STATUS_EFFECT_ENABLED)) {
-				checking->filter_disable_related_cards();
+				checking->filter_disable_related_cards(); // change effects.disable_check_list
 				if(pre_disable)
 					checking->set_status(STATUS_TO_ENABLE, TRUE);
 				else
@@ -2456,10 +2457,12 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 	if(ptuner) {
 		if(ptuner->value)
 			location = ptuner->value;
-		if(ptuner->s_range && ptuner->s_range > min)
-			min = ptuner->s_range;
-		if(ptuner->o_range && ptuner->o_range < max)
-			max = ptuner->o_range;
+		if(ptuner->is_flag(EFFECT_FLAG_SPSUM_PARAM)) {
+			if(ptuner->s_range && ptuner->s_range > min)
+				min = ptuner->s_range;
+			if(ptuner->o_range && ptuner->o_range < max)
+				max = ptuner->o_range;
+		}
 		if(min > max) {
 			pduel->restore_assumes();
 			return FALSE;
