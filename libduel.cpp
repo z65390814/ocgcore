@@ -241,7 +241,7 @@ int32 scriptlib::duel_reset_time_limit(lua_State * L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->write_buffer8(MSG_RESET_TIME);
 	pduel->write_buffer8(p);
-	pduel->write_buffer8(time);	
+	pduel->write_buffer16(time);	
 	return 0;
 }
 
