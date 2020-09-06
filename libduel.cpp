@@ -238,6 +238,8 @@ int32 scriptlib::duel_reset_time_limit(lua_State * L) {
 		luaL_error(L, "Parameter 1 should be 0 or 1.", 2);
 	if(lua_gettop(L) >= 2)
 		time = lua_tointeger(L, 2);
+	if(time < 0 || time > 0x7fff)
+		luaL_error(L, "Invalid time value.", 2);
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->write_buffer8(MSG_RESET_TIME);
 	pduel->write_buffer8(p);
