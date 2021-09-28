@@ -29,11 +29,15 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	lua_setglobal(lua_state, "io");
 	lua_pushnil(lua_state);
 	lua_setglobal(lua_state, "os");
+	//lua_pushnil(lua_state);
+	//lua_setglobal(lua_state, "package");
 	luaL_getsubtable(lua_state, LUA_REGISTRYINDEX, "_LOADED");
 	lua_pushnil(lua_state);
 	lua_setfield(lua_state, -2, "io");
 	lua_pushnil(lua_state);
 	lua_setfield(lua_state, -2, "os");
+	//lua_pushnil(lua_state);
+	//lua_setfield(lua_state, -2, "package");
 	lua_pop(lua_state, 1);
 #endif
 	//add bit lib back
