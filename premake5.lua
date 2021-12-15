@@ -17,3 +17,6 @@ project "ocgcore"
 
     filter "system:linux"
         defines { "LUA_USE_LINUX" }
+        if not BUILD_LUA then
+            includedirs { "/usr/include/lua5.3" }
+        end
