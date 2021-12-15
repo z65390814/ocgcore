@@ -8,6 +8,9 @@ project "ocgcore"
         includedirs { "../lua" }
     end
 
+    filter "action:vs*"
+        includedirs { "../lua" }
+
     filter "not action:vs*"
         buildoptions { "-std=c++14" }
 
