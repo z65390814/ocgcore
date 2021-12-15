@@ -4,9 +4,7 @@ project "ocgcore"
     files { "*.cpp", "*.h" }
     links { "lua" }
     
-    if BUILD_LUA then
-        includedirs { "../lua/src" }
-    end
+    includedirs { "../lua" }
 
     filter "not action:vs*"
         buildoptions { "-std=c++14" }
