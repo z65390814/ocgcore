@@ -9,7 +9,9 @@ project "ocgcore"
     end
 
     filter "action:vs*"
-        includedirs { "../lua" }
+        if not BUILD_LUA then
+            includedirs { "../lua" }
+        end
 
     filter "not action:vs*"
         buildoptions { "-std=c++14" }
