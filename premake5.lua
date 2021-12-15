@@ -21,6 +21,9 @@ project "ocgcore"
 
     filter "system:macosx"
         defines { "LUA_USE_MACOSX" }
+        if not BUILD_LUA then
+            includedirs { "../lua" }
+        end
 
     filter "system:linux"
         defines { "LUA_USE_LINUX" }
