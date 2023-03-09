@@ -2917,6 +2917,16 @@ int32 card::is_not_tuner(card* scard) {
 			return TRUE;
 	return FALSE;
 }
+int32 card::is_tuner(card* scard) {
+	if (get_synchro_type() & TYPE_TUNER)
+		return TRUE;
+	effect_set eset;
+	filter_effect(EFFECT_TUNER, &eset);
+	for (int32 i = 0; i < eset.size(); ++i)
+		if (!eset[i]->value || eset[i]->get_value(scard))
+			return TRUE;
+	return FALSE;
+}
 int32 card::check_unique_code(card* pcard) {
 	if(!unique_code)
 		return FALSE;
@@ -3424,8 +3434,10 @@ int32 card::is_affect_by_effect(effect* reason_effect) {
 		return FALSE;
 	return TRUE;
 }
-int32 card::is_can_be_disabled_by_effect(effect* reason_effect) {
-	if (is_status(STATUS_DISABLED))
+int32 card::is_can_be_disabled_by_effect(effect* reason_effect, bool is_monster_effect) {
+	if (is_monster_effect && is_status(STATUS_DISABLED))
+		return FALSE;
+	if(!is_monster_effect && !(get_type() & TYPE_TRAPMONSTER) && is_status(STATUS_DISABLED))
 		return FALSE;
 	if (is_affected_by_effect(EFFECT_CANNOT_DISABLE))
 		return FALSE;
