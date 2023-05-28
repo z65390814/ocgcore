@@ -200,7 +200,18 @@ int32 scriptlib::duel_set_summon_cancelable(lua_State *L) {
 	pduel->game_field->core.summon_cancelable = lua_toboolean(L, 1);
 	return 0;
 }
-
+//技能添加额外灵摆区域
+int32 scriptlib::duel_add_expzone(lua_State * L) {
+	check_param_count(L, 2);
+	int32 player = (int32)lua_tointeger(L, 1);
+	uint8 flag = lua_toboolean(L, 2);
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->write_buffer8(MSG_ADDEXPZONE);
+	pduel->write_buffer8(player);
+	pduel->write_buffer8(flag);
+	pduel->game_field->core.skilladdpzone[player]= flag;
+	return 0;
+}
 int32 scriptlib::duel_enable_global_flag(lua_State *L) {
 	check_param_count(L, 1);
 	int32 flag = (int32)lua_tointeger(L, 1);
@@ -4848,7 +4859,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "AnnounceCardFilter", scriptlib::duel_announce_card }, // For compat
 	{ "ResetTimeLimit", scriptlib::duel_reset_time_limit },
 	{ "SetSummonCancelable", scriptlib::duel_set_summon_cancelable },
-
+	{ "AddExpzone", scriptlib::duel_add_expzone },//技能添加额外灵摆区域
 	{ "EnableGlobalFlag", scriptlib::duel_enable_global_flag },
 	{ "GetLP", scriptlib::duel_get_lp },
 	{ "SetLP", scriptlib::duel_set_lp },
